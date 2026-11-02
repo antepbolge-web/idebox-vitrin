@@ -130,6 +130,17 @@
   .suzgec button[aria-pressed="true"] { background: var(--altin); color: #fff; font-weight: 600; }
   .gizli { display: none !important; }
 
+  /* Arama */
+  .ara {
+    width: 100%; margin-top: 20px; min-height: 52px; padding: 0 16px 0 46px;
+    border: 1px solid var(--ayrac); border-radius: 16px; background: var(--kart);
+    color: var(--yazi); font: inherit; font-size: 18px;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%230aa5a5' stroke-width='2.4' stroke-linecap='round'%3E%3Ccircle cx='10.5' cy='10.5' r='6.5'/%3E%3Cpath d='M15.5 15.5 21 21'/%3E%3C/svg%3E");
+    background-repeat: no-repeat; background-position: 15px center; background-size: 22px;
+  }
+  .ara:focus { outline: 2px solid var(--turkuaz); outline-offset: 1px; }
+  .bos { text-align: center; color: var(--soluk); margin: 32px 0; }
+
   /* Belirme animasyonu */
   @keyframes belir { from { opacity: 0; transform: translateY(12px); } to { opacity: 1; transform: none; } }
   .kart { animation: belir .45s ease both; }
@@ -163,6 +174,11 @@
   }
   .etiket.surum { background: var(--altin-acik); font-weight: 600; }
   .etiket.yeni { background: var(--altin); color: #fff; font-weight: 700; }
+  .kart p.yenilik {
+    margin: -2px 0 10px; padding: 6px 10px; border-left: 3px solid var(--altin);
+    background: var(--altin-acik); border-radius: 0 10px 10px 0; color: var(--yazi); font-size: 16px;
+  }
+  .kart p.yenilik b { color: var(--altin); }
 
   footer { margin-top: 40px; text-align: center; color: var(--soluk); font-size: 16px; }
 </style>
@@ -185,6 +201,7 @@
       <div><strong id="say-toplam">–</strong><span>uygulama</span></div>
       <div><strong id="say-son">–</strong><span>son güncelleme</span></div>
     </div>
+    <input id="ara" class="ara" type="search" placeholder="Ara: ad ya da özellik" aria-label="Uygulama ara" autocomplete="off">
     <div class="suzgec" role="group" aria-label="Süzgeç">
       <button data-s="hepsi" aria-pressed="true">Tümü</button>
       <button data-s="Telefon">Telefon</button>
@@ -198,6 +215,8 @@
   <h2 id="b-yardimci">Yardımcı uygulamalar</h2>
   <div class="liste" id="yardimci"></div>
 
+  <p class="bos gizli" id="bos">Aramaya uyan uygulama yok.</p>
+
   <footer>ideabox · bilgiler apps/apk/APK.md dosyasından</footer>
 </main>
 
@@ -207,31 +226,31 @@
 </div>
 
 <script>
-  // Bilgiler apps/apk/APK.md ile aynı tutulur (2026-11-02).
+  // Bilgiler apps/apk/APK.md ile aynı tutulur (2026-11-03).
   // simge: simgeler/ altındaki dosya; ekran: ekranlar/ altındaki görüntüler (ör. ["alarm-1.jpg"]).
   const UYGULAMALAR = [
     { ad: "Cafer Telefon", simge: "telefon.svg", surum: "1.15.0", tarih: "2026-11-02", grup: "ana", yer: "Telefon",
-      aciklama: "iOS tarzı arama ve rehber: gelen arama ekranı, son aramalar, favoriler, numara engelleme." },
+      aciklama: "iOS tarzı arama ve rehber: gelen arama ekranı, son aramalar, favoriler, numara engelleme.", yenilik: "Kilit ekranında arayan kişi anında görünür" },
     { ad: "Vakit ve Mektup", simge: "vakit.png", surum: "1.0.11", tarih: "2026-11-02", grup: "ana", yer: "Telefon",
       aciklama: "Namaz vakitleri, takvim ve Mektubat okuma." },
     { ad: "Notlar ve Çeviri", simge: "notlar.png", surum: "1.1.0", tarih: "2026-11-02", grup: "ana", yer: "Telefon",
-      aciklama: "Notlar; Claude ile düzeltme, özetleme ve çeviri." },
-    { ad: "Merkez", simge: "merkez.png", surum: "1.0.4", tarih: "2026-10-29", grup: "ana", yer: "Telefon",
+      aciklama: "Notlar; Claude ile düzeltme, özetleme ve çeviri.", yenilik: "Claude ile düzelt, özetle, sadeleştir, resmî yazı; Claude ile çeviri" },
+    { ad: "Merkez", simge: "merkez.png", ekran: ["merkez-1.jpg"], surum: "1.0.4", tarih: "2026-10-29", grup: "ana", yer: "Telefon",
       aciklama: "Araçlarıma tek yerden giriş." },
-    { ad: "Arama Asistanı", simge: "arama.png", surum: "1.2.5", tarih: "2026-11-02", grup: "yardimci", yer: "Telefon + Bilgisayar",
-      aciklama: "Spotlight tarzı arama: uygulama, dosya, kişi, hesap makinesi, sözlük, Vikipedi." },
+    { ad: "Arama Asistanı", simge: "arama.png", ekran: ["arama-1.jpg"], surum: "1.2.5", tarih: "2026-11-02", grup: "yardimci", yer: "Telefon + Bilgisayar",
+      aciklama: "Spotlight tarzı arama: uygulama, dosya, kişi, hesap makinesi, sözlük, Vikipedi.", yenilik: "Hazır Claude komutları: excel, yazı, duyuru, düzelt, özet, sunum" },
     { ad: "PDF Asistanı", simge: "pdf.png", surum: "1.1.0", tarih: "2026-11-02", grup: "yardimci", yer: "Telefon + Bilgisayar",
-      aciklama: "PDF okuma, imzalama, kamerayla tarama, bölme ve birleştirme." },
-    { ad: "Cafer Güncelleyici", simge: "guncelleyici.png", surum: "1.0.0", tarih: "2026-11-02", grup: "yardimci", yer: "Telefon",
-      aciklama: "Bütün uygulamalarımın yeni sürümünü tek listede gösterir; günlük bildirim ve widget." },
-    { ad: "Cafer Başlatıcı", simge: "baslatici.svg", surum: "0.3.0", tarih: "2026-11-02", grup: "yardimci", yer: "Telefon",
-      aciklama: "iOS tarzı cam görünümlü ana ekran: klasör kartları, hareket çubuğu, otomatik düzen." },
-    { ad: "Cafer Adım", simge: "adim.png", surum: "1.0.4", tarih: "2026-11-01", grup: "yardimci", yer: "Telefon",
-      aciklama: "Adım sayar: günlük hedef, haftalık grafik, hatırlatma ve widget'lar." },
+      aciklama: "PDF okuma, imzalama, kamerayla tarama, bölme ve birleştirme.", yenilik: "Claude'a sor: özet, resmî yazı taslağı, maddeler ve tarihler" },
+    { ad: "Cafer Güncelleyici", simge: "guncelleyici.png", ekran: ["guncelleyici-1.jpg"], surum: "1.0.0", tarih: "2026-11-02", grup: "yardimci", yer: "Telefon",
+      aciklama: "Bütün uygulamalarımın yeni sürümünü tek listede gösterir; günlük bildirim ve widget.", yenilik: "İlk sürüm: aile uygulamalarının güncel olup olmadığını gösterir." },
+    { ad: "Cafer Başlatıcı", simge: "baslatici.svg", ekran: ["baslatici-1.jpg"], surum: "0.3.0", tarih: "2026-11-02", grup: "yardimci", yer: "Telefon",
+      aciklama: "iOS tarzı cam görünümlü ana ekran: klasör kartları, hareket çubuğu, otomatik düzen.", yenilik: "Uygulamalar ana ekrana kısayol ve widget ekleyebilir (\u0022Ana Ekrana Ekle\u0022 kartı)." },
+    { ad: "Cafer Adım", simge: "adim.png", ekran: ["adim-1.jpg"], surum: "1.0.4", tarih: "2026-11-01", grup: "yardimci", yer: "Telefon",
+      aciklama: "Adım sayar: günlük hedef, haftalık grafik, hatırlatma ve widget'lar.", yenilik: "Çökme kaydı: uygulama kapanırsa sonraki açılışta \u0022Paylaş\u0022 sorar." },
     { ad: "Alarm ve Saat", simge: "alarm.png", surum: "2.1.3", tarih: "2026-11-01", grup: "yardimci", yer: "Telefon",
-      aciklama: "Saat ve namaz vakti widget'ları, vakte bağlı alarm, zamanlayıcı ve kronometre." },
-    { ad: "Depo Asistanı", simge: "depo.png", surum: "2.1.2", tarih: "2026-11-01", grup: "yardimci", yer: "Telefon + Bilgisayar",
-      aciklama: "Depolama temizliği: hızlı temizlik, yinelenen dosyalar, uygulama listesi." },
+      aciklama: "Saat ve namaz vakti widget'ları, vakte bağlı alarm, zamanlayıcı ve kronometre.", yenilik: "Çökme kaydı: uygulama kapanırsa sonraki açılışta \u0022Paylaş\u0022 sorar." },
+    { ad: "Depo Asistanı", simge: "depo.png", ekran: ["depo-1.jpg"], surum: "2.1.2", tarih: "2026-11-01", grup: "yardimci", yer: "Telefon + Bilgisayar",
+      aciklama: "Depolama temizliği: hızlı temizlik, yinelenen dosyalar, uygulama listesi.", yenilik: "Çökme kaydı: uygulama kapanırsa sonraki açılışta \u0022Paylaş\u0022 sorar." },
     { ad: "Dosya Yöneticisi", simge: "dosya.png", surum: "1.2.0", tarih: "2026-10-29", grup: "yardimci", yer: "Bilgisayar",
       aciklama: "Dosya ve klasörleri düzenleme." },
     { ad: "Fotoğraf Görüntüleyici", simge: "fotograf.png", surum: "2.0.3", tarih: "2026-10-27", grup: "yardimci", yer: "Bilgisayar",
@@ -279,6 +298,14 @@
     el.querySelector(".surum").textContent = "v" + u.surum;
     el.querySelector(".yer").textContent = u.yer;
     el.querySelector(".tarih").textContent = tarihYaz(u.tarih);
+    if (u.yenilik) {
+      const y = document.createElement("p");
+      y.className = "yenilik";
+      y.innerHTML = "<b>Bu sürümde:</b> ";
+      y.append(u.yenilik);
+      el.querySelector(".etiketler").before(y);
+    }
+    el.dataset.ara = [u.ad, u.aciklama, u.yenilik || "", u.yer].join(" ").toLocaleLowerCase("tr");
     if (yeniMi(u.tarih)) {
       const y = document.createElement("span");
       y.className = "etiket yeni";
@@ -319,22 +346,30 @@
     document.getElementById(u.grup).appendChild(kart);
   });
 
-  // Süzgeç: Tümü / Telefon / Bilgisayar
+  // Süzgeç (Tümü / Telefon / Bilgisayar) ve arama birlikte çalışır.
+  const ara = document.getElementById("ara");
+  let secili = "hepsi";
   function suz(s) {
-    document.querySelectorAll(".suzgec button").forEach(b => b.setAttribute("aria-pressed", b.dataset.s === s));
+    if (s) secili = s;
+    const q = ara.value.trim().toLocaleLowerCase("tr");
+    document.querySelectorAll(".suzgec button").forEach(b => b.setAttribute("aria-pressed", b.dataset.s === secili));
+    let toplam = 0;
     ["ana", "yardimci"].forEach(g => {
       const kartlar = document.getElementById(g).children;
       let gorunen = 0;
       [...kartlar].forEach(k => {
         const yer = k.querySelector(".yer").textContent;
-        const uyar = s === "hepsi" || yer.includes(s);
+        const uyar = (secili === "hepsi" || yer.includes(secili)) && (!q || k.dataset.ara.includes(q));
         k.classList.toggle("gizli", !uyar);
         if (uyar) gorunen++;
       });
       document.getElementById("b-" + g).classList.toggle("gizli", gorunen === 0);
+      toplam += gorunen;
     });
+    document.getElementById("bos").classList.toggle("gizli", toplam > 0);
   }
   document.querySelectorAll(".suzgec button").forEach(b => b.addEventListener("click", () => suz(b.dataset.s)));
+  ara.addEventListener("input", () => suz());
   document.getElementById("say-toplam").textContent = UYGULAMALAR.length;
   const son = UYGULAMALAR.map(u => u.tarih).sort().pop();
   document.getElementById("say-son").textContent = tarihYaz(son).slice(0, 5);
@@ -350,6 +385,11 @@
   try { kayitli = localStorage.getItem("idebox-tema") || "system"; } catch (e) {}
   temaUygula(kayitli);
   document.querySelectorAll(".tema button").forEach(b => b.addEventListener("click", () => temaUygula(b.dataset.t)));
+
+  // Çevrimdışı çalışma (yalnızca web adresinde; dosyadan açınca çalışmaz)
+  if ("serviceWorker" in navigator && location.protocol === "https:") {
+    navigator.serviceWorker.register("sw.js").catch(() => {});
+  }
 </script>
 </body>
 </html>
