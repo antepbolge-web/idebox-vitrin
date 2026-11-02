@@ -1,0 +1,336 @@
+<!doctype html>
+<html lang="tr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>idebox Vitrin</title>
+<meta name="description" content="Cafer Bey'in kendi uygulamalarının tek vitrini.">
+<meta name="robots" content="noindex, nofollow">
+<style>
+  :root {
+    --bg: #f4f7f8;
+    --kart: rgba(255,255,255,.82);
+    --yazi: #10202a;
+    --soluk: #5b6b74;
+    --ayrac: rgba(16,32,42,.10);
+    --turkuaz: #0aa5a5;
+    --turkuaz-acik: #d6f2f1;
+    --altin: #c9962b;
+    --altin-acik: #f6ead0;
+    --golge: 0 6px 24px rgba(16,32,42,.08);
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --bg: #0b1420;
+      --kart: rgba(24,36,50,.82);
+      --yazi: #eef4f6;
+      --soluk: #9fb0ba;
+      --ayrac: rgba(255,255,255,.10);
+      --turkuaz: #2cc9c4;
+      --turkuaz-acik: rgba(44,201,196,.16);
+      --altin: #e2b552;
+      --altin-acik: rgba(226,181,82,.16);
+      --golge: 0 6px 24px rgba(0,0,0,.35);
+    }
+  }
+  :root[data-theme="dark"] {
+    --bg: #0b1420;
+    --kart: rgba(24,36,50,.82);
+    --yazi: #eef4f6;
+    --soluk: #9fb0ba;
+    --ayrac: rgba(255,255,255,.10);
+    --turkuaz: #2cc9c4;
+    --turkuaz-acik: rgba(44,201,196,.16);
+    --altin: #e2b552;
+    --altin-acik: rgba(226,181,82,.16);
+    --golge: 0 6px 24px rgba(0,0,0,.35);
+  }
+
+  * { box-sizing: border-box; }
+  html { -webkit-text-size-adjust: 100%; }
+  body {
+    margin: 0;
+    background: var(--bg);
+    color: var(--yazi);
+    font: 19px/1.5 -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  }
+  .sayfa { max-width: 760px; margin: 0 auto; padding: 16px 16px 48px; }
+
+  /* Üst bar */
+  .ust {
+    position: sticky; top: 0; z-index: 5;
+    display: flex; align-items: center; justify-content: space-between; gap: 12px;
+    padding: 12px 16px;
+    background: color-mix(in srgb, var(--bg) 80%, transparent);
+    -webkit-backdrop-filter: blur(14px); backdrop-filter: blur(14px);
+    border-bottom: 1px solid var(--ayrac);
+  }
+  .logo { font-weight: 800; font-size: 24px; letter-spacing: -.5px; }
+  .logo b { color: var(--turkuaz); }
+  .logo i { color: var(--altin); font-style: normal; }
+  .tema {
+    display: flex; background: var(--kart); border: 1px solid var(--ayrac);
+    border-radius: 14px; padding: 3px;
+  }
+  .tema button {
+    min-height: 44px; min-width: 56px; border: 0; border-radius: 11px;
+    background: transparent; color: var(--soluk); font: inherit; font-size: 16px; cursor: pointer;
+  }
+  .tema button[aria-pressed="true"] { background: var(--turkuaz); color: #fff; font-weight: 600; }
+
+  /* Giriş */
+  .giris { padding: 28px 4px 8px; }
+  .giris h1 { margin: 0 0 8px; font-size: 34px; line-height: 1.2; letter-spacing: -.5px; }
+  .giris p { margin: 0; color: var(--soluk); }
+  .ozet { display: flex; gap: 12px; margin-top: 20px; flex-wrap: wrap; }
+  .ozet div {
+    flex: 1 1 140px; background: var(--kart); border: 1px solid var(--ayrac);
+    border-radius: 18px; padding: 14px 16px; box-shadow: var(--golge);
+  }
+  .ozet strong { display: block; font-size: 30px; color: var(--turkuaz); }
+  .ozet span { color: var(--soluk); font-size: 17px; }
+
+  /* Bölümler */
+  h2 { margin: 36px 4px 12px; font-size: 24px; }
+  h2 small { color: var(--soluk); font-weight: 400; font-size: 18px; }
+  .liste { display: grid; gap: 12px; grid-template-columns: 1fr; }
+  @media (min-width: 640px) { .liste { grid-template-columns: 1fr 1fr; } }
+
+  .kart {
+    display: flex; gap: 14px; align-items: flex-start;
+    background: var(--kart); border: 1px solid var(--ayrac);
+    border-radius: 20px; padding: 16px; box-shadow: var(--golge);
+  }
+  .simge {
+    flex: 0 0 56px; height: 56px; border-radius: 15px;
+    display: grid; place-items: center;
+    font-size: 26px; font-weight: 800; color: #fff;
+    background: linear-gradient(145deg, var(--turkuaz), #067a7a);
+  }
+  .kart.yardimci .simge { background: linear-gradient(145deg, var(--altin), #9a6f15); }
+  .simge.resimli { background: none !important; overflow: hidden; }
+  .simge img { width: 100%; height: 100%; display: block; }
+  .kart.tiklanir { cursor: pointer; }
+  .kart.tiklanir:active { transform: scale(.98); }
+  .etiket.foto { background: transparent; border: 1px solid var(--turkuaz); color: var(--turkuaz); }
+
+  /* Süzgeç */
+  .suzgec {
+    display: flex; gap: 8px; margin-top: 24px;
+    background: var(--kart); border: 1px solid var(--ayrac); border-radius: 16px; padding: 4px;
+  }
+  .suzgec button {
+    flex: 1; min-height: 48px; border: 0; border-radius: 12px; background: transparent;
+    color: var(--soluk); font: inherit; font-size: 17px; cursor: pointer;
+  }
+  .suzgec button[aria-pressed="true"] { background: var(--altin); color: #fff; font-weight: 600; }
+  .gizli { display: none !important; }
+
+  /* Belirme animasyonu */
+  @keyframes belir { from { opacity: 0; transform: translateY(12px); } to { opacity: 1; transform: none; } }
+  .kart { animation: belir .45s ease both; }
+  @media (prefers-reduced-motion: reduce) { .kart { animation: none; } }
+
+  /* Ekran görüntüsü penceresi */
+  .perde {
+    position: fixed; inset: 0; z-index: 20; display: flex; flex-direction: column;
+    background: rgba(0,0,0,.85); padding: 16px;
+  }
+  .perde-ust { display: flex; justify-content: space-between; align-items: center; color: #fff; gap: 12px; }
+  .perde-ust h3 { margin: 0; font-size: 20px; }
+  .perde-ust button {
+    min-height: 48px; min-width: 48px; border: 0; border-radius: 14px;
+    background: rgba(255,255,255,.18); color: #fff; font-size: 24px; cursor: pointer;
+  }
+  .kaydir {
+    flex: 1; display: flex; gap: 12px; overflow-x: auto; scroll-snap-type: x mandatory;
+    padding: 16px 0; align-items: center;
+  }
+  .kaydir img {
+    flex: 0 0 auto; max-height: 100%; max-width: 88vw; border-radius: 18px;
+    scroll-snap-align: center; object-fit: contain;
+  }
+  .kart h3 { margin: 0; font-size: 20px; }
+  .kart p { margin: 4px 0 10px; color: var(--soluk); font-size: 17px; }
+  .etiketler { display: flex; gap: 6px; flex-wrap: wrap; }
+  .etiket {
+    font-size: 15px; padding: 3px 10px; border-radius: 999px;
+    background: var(--turkuaz-acik); color: var(--yazi);
+  }
+  .etiket.surum { background: var(--altin-acik); font-weight: 600; }
+
+  footer { margin-top: 40px; text-align: center; color: var(--soluk); font-size: 16px; }
+</style>
+</head>
+<body>
+<header class="ust">
+  <div class="logo"><b>ide</b><i>box</i></div>
+  <div class="tema" role="group" aria-label="Görünüm">
+    <button data-t="system">Sistem</button>
+    <button data-t="light">Açık</button>
+    <button data-t="dark">Koyu</button>
+  </div>
+</header>
+
+<main class="sayfa">
+  <section class="giris">
+    <h1>Uygulamalarım</h1>
+    <p>Kendi yaptığım telefon ve bilgisayar uygulamaları, tek sayfada.</p>
+    <div class="ozet">
+      <div><strong id="say-toplam">–</strong><span>uygulama</span></div>
+      <div><strong id="say-son">–</strong><span>son güncelleme</span></div>
+    </div>
+    <div class="suzgec" role="group" aria-label="Süzgeç">
+      <button data-s="hepsi" aria-pressed="true">Tümü</button>
+      <button data-s="Telefon">Telefon</button>
+      <button data-s="Bilgisayar">Bilgisayar</button>
+    </div>
+  </section>
+
+  <h2 id="b-ana">Ana uygulamalar</h2>
+  <div class="liste" id="ana"></div>
+
+  <h2 id="b-yardimci">Yardımcı uygulamalar</h2>
+  <div class="liste" id="yardimci"></div>
+
+  <footer>idebox · bilgiler apps/apk/APK.md dosyasından</footer>
+</main>
+
+<div class="perde gizli" id="perde" role="dialog" aria-modal="true">
+  <div class="perde-ust"><h3 id="perde-baslik"></h3><button id="kapat" aria-label="Kapat">✕</button></div>
+  <div class="kaydir" id="kaydir"></div>
+</div>
+
+<script>
+  // Bilgiler apps/apk/APK.md ile aynı tutulur (2026-11-02).
+  // simge: simgeler/ altındaki dosya; ekran: ekranlar/ altındaki görüntüler (ör. ["alarm-1.jpg"]).
+  const UYGULAMALAR = [
+    { ad: "Cafer Telefon", surum: "1.15.0", tarih: "2026-11-02", grup: "ana", yer: "Telefon",
+      aciklama: "iOS tarzı arama ve rehber: gelen arama ekranı, son aramalar, favoriler, numara engelleme." },
+    { ad: "Vakit ve Mektup", surum: "1.0.11", tarih: "2026-11-02", grup: "ana", yer: "Telefon",
+      aciklama: "Namaz vakitleri, takvim ve Mektubat okuma." },
+    { ad: "Notlar ve Çeviri", surum: "1.1.0", tarih: "2026-11-02", grup: "ana", yer: "Telefon",
+      aciklama: "Notlar; Claude ile düzeltme, özetleme ve çeviri." },
+    { ad: "Merkez", surum: "1.0.4", tarih: "2026-10-29", grup: "ana", yer: "Telefon",
+      aciklama: "Araçlarıma tek yerden giriş." },
+    { ad: "Arama Asistanı", simge: "arama.png", surum: "1.2.5", tarih: "2026-11-02", grup: "yardimci", yer: "Telefon + Bilgisayar",
+      aciklama: "Spotlight tarzı arama: uygulama, dosya, kişi, hesap makinesi, sözlük, Vikipedi." },
+    { ad: "PDF Asistanı", simge: "pdf.png", surum: "1.1.0", tarih: "2026-11-02", grup: "yardimci", yer: "Telefon + Bilgisayar",
+      aciklama: "PDF okuma, imzalama, kamerayla tarama, bölme ve birleştirme." },
+    { ad: "Cafer Güncelleyici", simge: "guncelleyici.png", surum: "1.0.0", tarih: "2026-11-02", grup: "yardimci", yer: "Telefon",
+      aciklama: "Bütün uygulamalarımın yeni sürümünü tek listede gösterir; günlük bildirim ve widget." },
+    { ad: "Cafer Başlatıcı", surum: "0.3.0", tarih: "2026-11-02", grup: "yardimci", yer: "Telefon",
+      aciklama: "iOS tarzı cam görünümlü ana ekran: klasör kartları, hareket çubuğu, otomatik düzen." },
+    { ad: "Cafer Adım", surum: "1.0.4", tarih: "2026-11-01", grup: "yardimci", yer: "Telefon",
+      aciklama: "Adım sayar: günlük hedef, haftalık grafik, hatırlatma ve widget'lar." },
+    { ad: "Alarm ve Saat", surum: "2.1.3", tarih: "2026-11-01", grup: "yardimci", yer: "Telefon",
+      aciklama: "Saat ve namaz vakti widget'ları, vakte bağlı alarm, zamanlayıcı ve kronometre." },
+    { ad: "Depo Asistanı", simge: "depo.png", surum: "2.1.2", tarih: "2026-11-01", grup: "yardimci", yer: "Telefon + Bilgisayar",
+      aciklama: "Depolama temizliği: hızlı temizlik, yinelenen dosyalar, uygulama listesi." },
+    { ad: "Dosya Yöneticisi", surum: "1.2.0", tarih: "2026-10-29", grup: "yardimci", yer: "Bilgisayar",
+      aciklama: "Dosya ve klasörleri düzenleme." },
+    { ad: "Fotoğraf Görüntüleyici", surum: "2.0.3", tarih: "2026-10-27", grup: "yardimci", yer: "Bilgisayar",
+      aciklama: "Albümler, görüntüleyici, favoriler, düzenleme; HEIC ve video desteği." }
+  ];
+
+  function tarihYaz(t) {
+    const [y, a, g] = t.split("-");
+    return `${g}.${a}.${y}`;
+  }
+
+  function kartYap(u) {
+    const el = document.createElement("article");
+    el.className = "kart " + u.grup;
+    el.innerHTML = `
+      <div class="simge" aria-hidden="true"></div>
+      <div>
+        <h3></h3>
+        <p></p>
+        <div class="etiketler">
+          <span class="etiket surum"></span>
+          <span class="etiket yer"></span>
+          <span class="etiket tarih"></span>
+        </div>
+      </div>`;
+    const simge = el.querySelector(".simge");
+    if (u.simge) {
+      simge.classList.add("resimli");
+      const img = new Image();
+      img.alt = "";
+      img.src = "simgeler/" + u.simge;
+      simge.appendChild(img);
+    } else {
+      simge.textContent = u.ad.replace("Cafer ", "").charAt(0);
+    }
+    el.querySelector("h3").textContent = u.ad;
+    el.querySelector("p").textContent = u.aciklama;
+    el.querySelector(".surum").textContent = "v" + u.surum;
+    el.querySelector(".yer").textContent = u.yer;
+    el.querySelector(".tarih").textContent = tarihYaz(u.tarih);
+    if (u.ekran && u.ekran.length) {
+      el.classList.add("tiklanir");
+      el.tabIndex = 0;
+      const f = document.createElement("span");
+      f.className = "etiket foto";
+      f.textContent = "📷 " + u.ekran.length;
+      el.querySelector(".etiketler").appendChild(f);
+      el.addEventListener("click", () => perdeAc(u));
+      el.addEventListener("keydown", e => { if (e.key === "Enter") perdeAc(u); });
+    }
+    return el;
+  }
+
+  // Ekran görüntüsü penceresi
+  const perde = document.getElementById("perde");
+  function perdeAc(u) {
+    document.getElementById("perde-baslik").textContent = u.ad;
+    const k = document.getElementById("kaydir");
+    k.innerHTML = "";
+    u.ekran.forEach(d => { const i = new Image(); i.src = "ekranlar/" + d; i.alt = u.ad; i.loading = "lazy"; k.appendChild(i); });
+    perde.classList.remove("gizli");
+  }
+  function perdeKapat() { perde.classList.add("gizli"); }
+  document.getElementById("kapat").addEventListener("click", perdeKapat);
+  perde.addEventListener("click", e => { if (e.target === perde || e.target.id === "kaydir") perdeKapat(); });
+  document.addEventListener("keydown", e => { if (e.key === "Escape") perdeKapat(); });
+
+  UYGULAMALAR.forEach((u, i) => {
+    const kart = kartYap(u);
+    kart.style.animationDelay = (i * 40) + "ms";
+    document.getElementById(u.grup).appendChild(kart);
+  });
+
+  // Süzgeç: Tümü / Telefon / Bilgisayar
+  function suz(s) {
+    document.querySelectorAll(".suzgec button").forEach(b => b.setAttribute("aria-pressed", b.dataset.s === s));
+    ["ana", "yardimci"].forEach(g => {
+      const kartlar = document.getElementById(g).children;
+      let gorunen = 0;
+      [...kartlar].forEach(k => {
+        const yer = k.querySelector(".yer").textContent;
+        const uyar = s === "hepsi" || yer.includes(s);
+        k.classList.toggle("gizli", !uyar);
+        if (uyar) gorunen++;
+      });
+      document.getElementById("b-" + g).classList.toggle("gizli", gorunen === 0);
+    });
+  }
+  document.querySelectorAll(".suzgec button").forEach(b => b.addEventListener("click", () => suz(b.dataset.s)));
+  document.getElementById("say-toplam").textContent = UYGULAMALAR.length;
+  const son = UYGULAMALAR.map(u => u.tarih).sort().pop();
+  document.getElementById("say-son").textContent = tarihYaz(son).slice(0, 5);
+
+  // Görünüm: Sistem / Açık / Koyu (tercih bu tarayıcıda saklanır)
+  const kok = document.documentElement;
+  function temaUygula(t) {
+    if (t === "system") kok.removeAttribute("data-theme"); else kok.setAttribute("data-theme", t);
+    document.querySelectorAll(".tema button").forEach(b => b.setAttribute("aria-pressed", b.dataset.t === t));
+    try { localStorage.setItem("idebox-tema", t); } catch (e) {}
+  }
+  let kayitli = "system";
+  try { kayitli = localStorage.getItem("idebox-tema") || "system"; } catch (e) {}
+  temaUygula(kayitli);
+  document.querySelectorAll(".tema button").forEach(b => b.addEventListener("click", () => temaUygula(b.dataset.t)));
+</script>
+</body>
+</html>
