@@ -118,6 +118,18 @@
   .kart.tiklanir:active { transform: scale(.98); }
   .etiket.foto { background: transparent; border: 1px solid var(--turkuaz); color: var(--turkuaz); }
 
+  /* WhatsApp okunmamış sayısı rozeti: simgenin sağ üst köşesi (simge kırpıldığı için kartın içinde durur) */
+  .kart { position: relative; }
+  .rozet {
+    position: absolute; top: 6px; left: 58px; z-index: 2;
+    min-width: 30px; height: 30px; padding: 0 8px; border-radius: 999px;
+    display: grid; place-items: center;
+    background: #e53935; color: #fff;
+    font-size: 17px; font-weight: 800; line-height: 1;
+    border: 2px solid var(--bg); box-shadow: 0 2px 6px rgba(0,0,0,.3);
+    pointer-events: none;
+  }
+
   /* Süzgeç */
   .suzgec {
     display: flex; gap: 8px; margin-top: 24px;
