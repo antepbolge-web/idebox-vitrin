@@ -239,37 +239,38 @@
 
 <script>
   // Bilgiler apps/apk/APK.md ile aynı tutulur (2026-11-04).
+  // whatsapp: okunmamış WhatsApp mesaj sayısı (elle yazılır; 0 ise rozet görünmez, 99'dan büyükse "99+").
   // simge: simgeler/ altındaki dosya; ekran: ekranlar/ altındaki görüntüler (ör. ["alarm-1.jpg"]).
   const UYGULAMALAR = [
-    { ad: "Cafer Telefon", simge: "telefon.svg", surum: "1.20.0", tarih: "2026-11-04", grup: "ana", yer: "Telefon",
+    { ad: "Cafer Telefon", simge: "telefon.svg", surum: "1.20.0", tarih: "2026-11-04", whatsapp: 0, grup: "ana", yer: "Telefon",
       aciklama: "iOS tarzı arama ve rehber: gelen arama ekranı, son aramalar, favoriler, numara engelleme.", yenilik: "Papirüs teması: kâğıt tonlarında 5. görünüm" },
-    { ad: "Vakit", simge: "vakit.png", surum: "1.1.2", tarih: "2026-11-04", grup: "ana", yer: "Telefon",
+    { ad: "Vakit", simge: "vakit.png", surum: "1.1.2", tarih: "2026-11-04", whatsapp: 0, grup: "ana", yer: "Telefon",
       aciklama: "Namaz vakitleri, takvim ve Kur'an-ı Kerim.", yenilik: "Yeni simge: modern, sade, iOS tarzı" },
-    { ad: "Mektup", simge: "mektup.png", surum: "1.0.2", tarih: "2026-11-04", grup: "ana", yer: "Telefon",
+    { ad: "Mektup", simge: "mektup.png", surum: "1.0.2", tarih: "2026-11-04", whatsapp: 0, grup: "ana", yer: "Telefon",
       aciklama: "Mektubat-ı Rabbani okuma, not ve arama.", yenilik: "Yeni simge: modern, sade, iOS tarzı" },
-    { ad: "Notlar", simge: "notlar.png", surum: "1.2.2", tarih: "2026-11-04", grup: "ana", yer: "Telefon",
+    { ad: "Notlar", simge: "notlar.png", surum: "1.2.2", tarih: "2026-11-04", whatsapp: 0, grup: "ana", yer: "Telefon",
       aciklama: "Notlar; Claude ile düzeltme ve özetleme.", yenilik: "Yeni simge: modern, sade, iOS tarzı" },
-    { ad: "Çeviri", simge: "ceviri.png", surum: "1.0.2", tarih: "2026-11-04", grup: "ana", yer: "Telefon",
+    { ad: "Çeviri", simge: "ceviri.png", surum: "1.0.2", tarih: "2026-11-04", whatsapp: 0, grup: "ana", yer: "Telefon",
       aciklama: "Çeviri, kelime defteri ve Claude ile çeviri.", yenilik: "Yeni simge: modern, sade, iOS tarzı" },
-    { ad: "Merkez", simge: "merkez.png", ekran: ["merkez-1.jpg"], surum: "1.0.7", tarih: "2026-11-04", grup: "ana", yer: "Telefon",
+    { ad: "Merkez", simge: "merkez.png", ekran: ["merkez-1.jpg"], surum: "1.0.7", tarih: "2026-11-04", whatsapp: 0, grup: "ana", yer: "Telefon",
       aciklama: "Araçlarıma tek yerden giriş.", yenilik: "Yazı boyutuna En küçük (%65) ve Çok küçük (%75) eklendi" },
-    { ad: "Arama Asistanı", simge: "arama.png", ekran: ["arama-1.jpg"], surum: "1.2.9", tarih: "2026-11-04", grup: "yardimci", yer: "Telefon + Bilgisayar",
+    { ad: "Arama Asistanı", simge: "arama.png", ekran: ["arama-1.jpg"], surum: "1.2.9", tarih: "2026-11-04", whatsapp: 0, grup: "yardimci", yer: "Telefon + Bilgisayar",
       aciklama: "Spotlight tarzı arama: uygulama, dosya, kişi, hesap makinesi, sözlük, Vikipedi.", yenilik: "Papirüs teması: kâğıt tonlarında 5. görünüm" },
-    { ad: "PDF Asistanı", simge: "pdf.png", surum: "1.1.4", tarih: "2026-11-04", grup: "yardimci", yer: "Telefon + Bilgisayar",
+    { ad: "PDF Asistanı", simge: "pdf.png", surum: "1.1.4", tarih: "2026-11-04", whatsapp: 0, grup: "yardimci", yer: "Telefon + Bilgisayar",
       aciklama: "PDF okuma, imzalama, kamerayla tarama, bölme ve birleştirme.", yenilik: "Papirüs teması: kâğıt tonlarında 5. görünüm" },
-    { ad: "Cafer Güncelleyici", simge: "guncelleyici.png", ekran: ["guncelleyici-1.jpg"], surum: "1.0.4", tarih: "2026-11-04", grup: "yardimci", yer: "Telefon",
+    { ad: "Cafer Güncelleyici", simge: "guncelleyici.png", ekran: ["guncelleyici-1.jpg"], surum: "1.0.4", tarih: "2026-11-04", whatsapp: 0, grup: "yardimci", yer: "Telefon",
       aciklama: "Bütün uygulamalarımın yeni sürümünü tek listede gösterir; günlük bildirim ve widget.", yenilik: "Papirüs teması: kâğıt tonlarında 5. görünüm" },
-    { ad: "Cafer Başlatıcı", simge: "baslatici.svg", ekran: ["baslatici-1.jpg"], surum: "0.3.0", tarih: "2026-11-04", grup: "yardimci", yer: "Telefon",
+    { ad: "Cafer Başlatıcı", simge: "baslatici.svg", ekran: ["baslatici-1.jpg"], surum: "0.3.0", tarih: "2026-11-04", whatsapp: 0, grup: "yardimci", yer: "Telefon",
       aciklama: "iOS tarzı cam görünümlü ana ekran: klasör kartları, hareket çubuğu, otomatik düzen.", yenilik: "Papirüs hazır teması" },
-    { ad: "Cafer Adım", simge: "adim.png", ekran: ["adim-1.jpg"], surum: "1.0.9", tarih: "2026-11-04", grup: "yardimci", yer: "Telefon",
+    { ad: "Cafer Adım", simge: "adim.png", ekran: ["adim-1.jpg"], surum: "1.0.9", tarih: "2026-11-04", whatsapp: 0, grup: "yardimci", yer: "Telefon",
       aciklama: "Adım sayar: günlük hedef, haftalık grafik, hatırlatma ve widget'lar.", yenilik: "Papirüs teması: kâğıt renkli açık tema. Ayarlar → Görünüm → Tema." },
-    { ad: "Alarm ve Saat", simge: "alarm.png", surum: "2.1.9", tarih: "2026-11-04", grup: "yardimci", yer: "Telefon",
+    { ad: "Alarm ve Saat", simge: "alarm.png", surum: "2.1.9", tarih: "2026-11-04", whatsapp: 0, grup: "yardimci", yer: "Telefon",
       aciklama: "Saat ve namaz vakti widget'ları, vakte bağlı alarm, zamanlayıcı ve kronometre.", yenilik: "Papirüs teması: kâğıt tonlarında 5. görünüm" },
-    { ad: "Depo Asistanı", simge: "depo.png", ekran: ["depo-1.jpg"], surum: "2.1.6", tarih: "2026-11-04", grup: "yardimci", yer: "Telefon + Bilgisayar",
+    { ad: "Depo Asistanı", simge: "depo.png", ekran: ["depo-1.jpg"], surum: "2.1.6", tarih: "2026-11-04", whatsapp: 0, grup: "yardimci", yer: "Telefon + Bilgisayar",
       aciklama: "Depolama temizliği: hızlı temizlik, yinelenen dosyalar, uygulama listesi.", yenilik: "Papirüs teması: kâğıt tonlarında 5. görünüm" },
-    { ad: "Dosya Yöneticisi", simge: "dosya.png", surum: "1.2.2", tarih: "2026-11-04", grup: "yardimci", yer: "Bilgisayar",
+    { ad: "Dosya Yöneticisi", simge: "dosya.png", surum: "1.2.2", tarih: "2026-11-04", whatsapp: 0, grup: "yardimci", yer: "Bilgisayar",
       aciklama: "Dosya ve klasörleri düzenleme.", yenilik: "Papirüs teması: kâğıt tonlarında 5. görünüm" },
-    { ad: "Fotoğraf Görüntüleyici", simge: "fotograf.png", surum: "2.0.6", tarih: "2026-11-04", grup: "yardimci", yer: "Bilgisayar",
+    { ad: "Fotoğraf Görüntüleyici", simge: "fotograf.png", surum: "2.0.6", tarih: "2026-11-04", whatsapp: 0, grup: "yardimci", yer: "Bilgisayar",
       aciklama: "Albümler, görüntüleyici, favoriler, düzenleme; HEIC ve video desteği.", yenilik: "Papirüs ailenin ortak teması oldu" }
   ];
 
@@ -320,6 +321,16 @@
       y.innerHTML = "<b>Bu sürümde:</b> ";
       y.append(u.yenilik);
       el.querySelector(".etiketler").before(y);
+    }
+    // WhatsApp okunmamış sayısı: 1 ve üzeriyse rozet; 99'dan büyükse "99+"
+    const wa = Number(u.whatsapp) || 0;
+    if (wa > 0) {
+      const r = document.createElement("span");
+      r.className = "rozet";
+      r.textContent = wa > 99 ? "99+" : String(wa);
+      r.setAttribute("role", "img");
+      r.setAttribute("aria-label", wa + " okunmamış WhatsApp mesajı");
+      el.appendChild(r);
     }
     el.dataset.ara = [u.ad, u.aciklama, u.yenilik || "", u.yer].join(" ").toLocaleLowerCase("tr");
     if (yeniMi(u.tarih)) {
