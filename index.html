@@ -103,6 +103,10 @@
   }
   .sifirla:active:not(:disabled) { background: #e53935; color: #fff; }
   .sifirla:disabled { opacity: .35; cursor: default; }
+  .izin {
+    flex: 1 1 100%; min-height: 52px; border-radius: 14px; border: 2px solid var(--turkuaz);
+    background: var(--turkuaz-acik); color: var(--yazi); font: inherit; font-size: 18px; font-weight: 700; cursor: pointer;
+  }
   .onay {
     position: fixed; inset: 0; z-index: 30; display: grid; place-items: center;
     background: rgba(0,0,0,.6); padding: 20px;
@@ -242,6 +246,7 @@
       <div class="okunmamis">
         <div class="okunmamis-bilgi"><strong id="say-wa">0</strong><span>okunmamış</span></div>
         <button id="sifirla-hepsi" class="sifirla" type="button" disabled>Hepsini sıfırla</button>
+        <button id="rozet-izin" class="izin gizli" type="button">Simge rozetini aç</button>
       </div>
     </div>
     <input id="ara" class="ara" type="search" placeholder="Ara: ad ya da özellik" aria-label="Uygulama ara" autocomplete="off">
@@ -457,6 +462,19 @@
   });
 
   toplamYaz();
+
+  // iPhone'da ana ekran simgesi rozeti için bildirim izni gerekir; düğme yalnızca o zaman görünür.
+  const izinDugme = document.getElementById("rozet-izin");
+  function izinGerekli() {
+    const ios = /iPhone|iPad|iPod/.test(navigator.userAgent) || (navigator.platform === "MacIntel" && navigator.maxTouchPoints > 1);
+    return ios && "setAppBadge" in navigator && "Notification" in window && Notification.permission === "default";
+  }
+  izinDugme.classList.toggle("gizli", !izinGerekli());
+  izinDugme.addEventListener("click", async () => {
+    try { await Notification.requestPermission(); } catch (e) {}
+    izinDugme.classList.toggle("gizli", !izinGerekli());
+    simgeSon = -1; toplamYaz(); // izin verildiyse güncel sayıyı simgeye yaz
+  });
 
   // "Hepsini sıfırla": önce onay sorulur; Evet denirse bütün sayaçlar 0 olur.
   const onay = document.getElementById("onay");
