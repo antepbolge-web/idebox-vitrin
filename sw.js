@@ -1,6 +1,6 @@
 // ideabox Vitrin: çevrimdışı çalışma.
 // İnternet varken her zaman en yenisi gelir (ağ önce); yoksa saklanan kopya açılır.
-const SAKLA = "vitrin-v1";
+const SAKLA = "vitrin-v2";
 const ILK = ["./", "index.html", "manifest.webmanifest", "simgeler/vitrin-192.png", "simgeler/vitrin-64.png"];
 
 self.addEventListener("install", e => {
