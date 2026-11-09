@@ -113,7 +113,9 @@
   }
   .kart.yardimci .simge { background: linear-gradient(145deg, var(--altin), #9a6f15); }
   .simge.resimli { background: none !important; overflow: hidden; }
-  .simge img { width: 100%; height: 100%; display: block; }
+  .simge img { width: 100%; height: 100%; display: block; -webkit-user-drag: none; pointer-events: none; }
+  .simge.sayac { cursor: pointer; touch-action: manipulation; -webkit-user-select: none; user-select: none; -webkit-touch-callout: none; }
+  .simge.sayac:active { transform: scale(.92); }
   .kart.tiklanir { cursor: pointer; }
   .kart.tiklanir:active { transform: scale(.98); }
   .etiket.foto { background: transparent; border: 1px solid var(--turkuaz); color: var(--turkuaz); }
@@ -322,16 +324,31 @@
       y.append(u.yenilik);
       el.querySelector(".etiketler").before(y);
     }
-    // WhatsApp okunmamış sayısı: 1 ve üzeriyse rozet; 99'dan büyükse "99+"
-    const wa = Number(u.whatsapp) || 0;
-    if (wa > 0) {
-      const r = document.createElement("span");
-      r.className = "rozet";
+    // WhatsApp sayacı: simgeye dokununca +1, basılı tutunca (0,5 sn) sıfırlanır.
+    // Rozet 1 ve üzeriyse görünür; 99'dan büyükse "99+".
+    let wa = Number(u.whatsapp) || 0;
+    const r = document.createElement("span");
+    r.className = "rozet";
+    r.setAttribute("role", "img");
+    function rozetYaz() {
+      r.classList.toggle("gizli", wa <= 0);
       r.textContent = wa > 99 ? "99+" : String(wa);
-      r.setAttribute("role", "img");
       r.setAttribute("aria-label", wa + " okunmamış WhatsApp mesajı");
-      el.appendChild(r);
+      simge.setAttribute("aria-label", u.ad + ": sayıyı artır, basılı tutarak sıfırla");
     }
+    el.appendChild(r);
+    simge.classList.add("sayac");
+    simge.setAttribute("role", "button");
+    simge.tabIndex = 0;
+    let zaman = null, uzun = false;
+    function sifirla() { uzun = true; wa = 0; rozetYaz(); if (navigator.vibrate) navigator.vibrate(40); }
+    function artir() { wa += 1; rozetYaz(); }
+    simge.addEventListener("pointerdown", e => { e.stopPropagation(); uzun = false; clearTimeout(zaman); zaman = setTimeout(sifirla, 500); });
+    ["pointerup", "pointerleave", "pointercancel"].forEach(o => simge.addEventListener(o, () => clearTimeout(zaman)));
+    simge.addEventListener("click", e => { e.stopPropagation(); if (uzun) { uzun = false; return; } artir(); });
+    simge.addEventListener("keydown", e => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); e.stopPropagation(); artir(); } });
+    simge.addEventListener("contextmenu", e => e.preventDefault());
+    rozetYaz();
     el.dataset.ara = [u.ad, u.aciklama, u.yenilik || "", u.yer].join(" ").toLocaleLowerCase("tr");
     if (yeniMi(u.tarih)) {
       const y = document.createElement("span");
