@@ -327,12 +327,21 @@
     return `${g}.${a}.${y}`;
   }
 
+  let simgeSon = -1; // ana ekran simgesine en son yazılan toplam
   // Üstteki "okunmamış" kutusu: bütün kartların sayılarının toplamı.
   function toplamYaz() {
     let t = 0;
     document.querySelectorAll(".kart").forEach(k => { t += Number(k.dataset.wa) || 0; });
     document.getElementById("say-wa").textContent = t > 999 ? "999+" : String(t);
     document.getElementById("sifirla-hepsi").disabled = t <= 0;
+    // Ana ekran simgesi rozeti (Badging API): destek yoksa ya da izin verilmemişse sessizce atlanır.
+    try {
+      if ("setAppBadge" in navigator && t !== simgeSon) {
+        simgeSon = t;
+        const is = t > 0 ? navigator.setAppBadge(t) : navigator.clearAppBadge();
+        if (is && is.catch) is.catch(() => {});
+      }
+    } catch (e) {}
   }
 
   function kartYap(u) {
