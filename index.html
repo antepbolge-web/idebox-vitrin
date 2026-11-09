@@ -94,6 +94,15 @@
   .ozet strong { display: block; font-size: 30px; color: var(--turkuaz); }
   .ozet span { color: var(--soluk); font-size: 17px; }
   .ozet .okunmamis strong { color: #e53935; }
+  .ozet .okunmamis { display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap; }
+  .ozet .okunmamis-bilgi { flex: 0 1 auto; min-width: 0; background: none; border: 0; border-radius: 0; padding: 0; box-shadow: none; }
+  .sifirla {
+    min-height: 52px; padding: 0 20px; border-radius: 14px;
+    border: 2px solid #e53935; background: transparent; color: #e53935;
+    font: inherit; font-size: 18px; font-weight: 700; cursor: pointer;
+  }
+  .sifirla:active:not(:disabled) { background: #e53935; color: #fff; }
+  .sifirla:disabled { opacity: .35; cursor: default; }
 
   /* Bölümler */
   h2 { margin: 36px 4px 12px; font-size: 24px; }
@@ -215,7 +224,10 @@
     <div class="ozet">
       <div><strong id="say-toplam">–</strong><span>uygulama</span></div>
       <div><strong id="say-son">–</strong><span>son güncelleme</span></div>
-      <div class="okunmamis"><strong id="say-wa">0</strong><span>okunmamış</span></div>
+      <div class="okunmamis">
+        <div class="okunmamis-bilgi"><strong id="say-wa">0</strong><span>okunmamış</span></div>
+        <button id="sifirla-hepsi" class="sifirla" type="button" disabled>Hepsini sıfırla</button>
+      </div>
     </div>
     <input id="ara" class="ara" type="search" placeholder="Ara: ad ya da özellik" aria-label="Uygulama ara" autocomplete="off">
     <div class="suzgec" role="group" aria-label="Süzgeç">
@@ -295,6 +307,7 @@
     let t = 0;
     document.querySelectorAll(".kart").forEach(k => { t += Number(k.dataset.wa) || 0; });
     document.getElementById("say-wa").textContent = t > 999 ? "999+" : String(t);
+    document.getElementById("sifirla-hepsi").disabled = t <= 0;
   }
 
   function kartYap(u) {
