@@ -326,7 +326,14 @@
     }
     // WhatsApp sayacı: simgeye dokununca +1, basılı tutunca (0,5 sn) sıfırlanır.
     // Rozet 1 ve üzeriyse görünür; 99'dan büyükse "99+".
+    // Sayı bu telefonda saklanır; kayıt yoksa listedeki başlangıç değeri kullanılır.
+    const ANAHTAR = "vitrin-wa:" + u.ad;
     let wa = Number(u.whatsapp) || 0;
+    try {
+      const k = localStorage.getItem(ANAHTAR);
+      if (k !== null && Number.isFinite(Number(k))) wa = Math.max(0, Math.floor(Number(k)));
+    } catch (e) {}
+    function sakla() { try { localStorage.setItem(ANAHTAR, String(wa)); } catch (e) {} }
     const r = document.createElement("span");
     r.className = "rozet";
     r.setAttribute("role", "img");
@@ -341,8 +348,8 @@
     simge.setAttribute("role", "button");
     simge.tabIndex = 0;
     let zaman = null, uzun = false;
-    function sifirla() { uzun = true; wa = 0; rozetYaz(); if (navigator.vibrate) navigator.vibrate(40); }
-    function artir() { wa += 1; rozetYaz(); }
+    function sifirla() { uzun = true; wa = 0; sakla(); rozetYaz(); if (navigator.vibrate) navigator.vibrate(40); }
+    function artir() { wa += 1; sakla(); rozetYaz(); }
     simge.addEventListener("pointerdown", e => { e.stopPropagation(); uzun = false; clearTimeout(zaman); zaman = setTimeout(sifirla, 500); });
     ["pointerup", "pointerleave", "pointercancel"].forEach(o => simge.addEventListener(o, () => clearTimeout(zaman)));
     simge.addEventListener("click", e => { e.stopPropagation(); if (uzun) { uzun = false; return; } artir(); });
