@@ -290,6 +290,13 @@
     return `${g}.${a}.${y}`;
   }
 
+  // Üstteki "okunmamış" kutusu: bütün kartların sayılarının toplamı.
+  function toplamYaz() {
+    let t = 0;
+    document.querySelectorAll(".kart").forEach(k => { t += Number(k.dataset.wa) || 0; });
+    document.getElementById("say-wa").textContent = t > 999 ? "999+" : String(t);
+  }
+
   function kartYap(u) {
     const el = document.createElement("article");
     el.className = "kart " + u.grup;
@@ -340,10 +347,12 @@
     r.className = "rozet";
     r.setAttribute("role", "img");
     function rozetYaz() {
+      el.dataset.wa = wa;
       r.classList.toggle("gizli", wa <= 0);
       r.textContent = wa > 99 ? "99+" : String(wa);
       r.setAttribute("aria-label", wa + " okunmamış WhatsApp mesajı");
       simge.setAttribute("aria-label", u.ad + ": sayıyı artır, basılı tutarak sıfırla");
+      toplamYaz();
     }
     el.appendChild(r);
     simge.classList.add("sayac");
@@ -398,6 +407,8 @@
     kart.style.animationDelay = (i * 40) + "ms";
     document.getElementById(u.grup).appendChild(kart);
   });
+
+  toplamYaz();
 
   // Süzgeç (Tümü / Telefon / Bilgisayar) ve arama birlikte çalışır.
   const ara = document.getElementById("ara");
