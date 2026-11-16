@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="#000000"
+    android:gravity="center"
+    android:orientation="vertical"
+    android:padding="24dp">
+
+    <TextClock
+        android:id="@+id/saat"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:format24Hour="HH:mm"
+        android:format12Hour="HH:mm"
+        android:textColor="#FFFFFF"
+        android:textSize="96sp"
+        android:textStyle="bold" />
+
+    <TextClock
+        android:id="@+id/tarih"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="12dp"
+        android:format24Hour="d MMMM yyyy, EEEE"
+        android:format12Hour="d MMMM yyyy, EEEE"
+        android:textColor="#CCCCCC"
+        android:textSize="28sp" />
+
+    <TextView
+        android:id="@+id/pil"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="40dp"
+        android:text="Pil: …"
+        android:textColor="#FFFFFF"
+        android:textSize="36sp" />
+</LinearLayout>
