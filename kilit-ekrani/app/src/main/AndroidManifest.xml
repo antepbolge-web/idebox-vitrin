@@ -1,10 +1,17 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android">
 
-    <!-- Android 11 ve sonrası: widget sunan tüm uygulamaları görebilmek için -->
     <!-- Bazı uygulamaların (ör. Gluroo) widget'ları ancak bu izinle listelenebilir -->
     <uses-permission android:name="android.permission.QUERY_ALL_PACKAGES" />
 
+    <!-- Ekran açılınca kilit ekranımızı göstermek için -->
+    <uses-permission android:name="android.permission.SYSTEM_ALERT_WINDOW" />
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE_SPECIAL_USE" />
+    <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
+    <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED" />
+
+    <!-- Android 11 ve sonrası: widget sunan tüm uygulamaları görebilmek için -->
     <queries>
         <intent>
             <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
@@ -19,6 +26,7 @@
         <activity
             android:name=".MainActivity"
             android:exported="true"
+            android:launchMode="singleTask"
             android:showWhenLocked="true"
             android:turnScreenOn="true">
             <intent-filter>
@@ -26,5 +34,22 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
+
+        <service
+            android:name=".KilitServisi"
+            android:exported="false"
+            android:foregroundServiceType="specialUse">
+            <property
+                android:name="android.app.PROPERTY_SPECIAL_USE_FGS_SUBTYPE"
+                android:value="Kişisel kilit ekranını ekran açıldığında göstermek" />
+        </service>
+
+        <receiver
+            android:name=".AcilisAlici"
+            android:exported="true">
+            <intent-filter>
+                <action android:name="android.intent.action.BOOT_COMPLETED" />
+            </intent-filter>
+        </receiver>
     </application>
 </manifest>

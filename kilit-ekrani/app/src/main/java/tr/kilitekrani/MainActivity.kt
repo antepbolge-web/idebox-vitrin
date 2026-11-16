@@ -1,6 +1,10 @@
 package tr.kilitekrani
 
+import android.Manifest
 import android.app.Activity
+import android.content.pm.PackageManager
+import android.os.Build
+import android.provider.Settings
 import android.app.AlertDialog
 import android.appwidget.AppWidgetHost
 import android.appwidget.AppWidgetManager
@@ -29,6 +33,7 @@ class MainActivity : Activity() {
         private const val REQ_BAGLA = 1
         private const val REQ_AYAR = 2
         private const val REQ_DUVAR = 3
+        private const val REQ_BILDIRIM = 4
         private const val TERCIH = "kilit_ekrani"
         private const val ANAHTAR_WIDGETLAR = "widgetlar"
         private const val ANAHTAR_DUVAR = "duvar_kagidi"
@@ -78,6 +83,53 @@ class MainActivity : Activity() {
         bekleyenWidget = savedInstanceState?.getInt("bekleyen", -1) ?: -1
         duvarKagidiniYukle()
         widgetlariGoster()
+        izinleriKontrolEt()
+    }
+
+    // ---------- Otomatik açılma için izinler ----------
+
+    private fun izinleriKontrolEt() {
+        if (Build.VERSION.SDK_INT >= 33 &&
+            checkSelfPermission(Manifest.permission.POST_NOTIFICATIONS) !=
+            PackageManager.PERMISSION_GRANTED
+        ) {
+            requestPermissions(arrayOf(Manifest.permission.POST_NOTIFICATIONS), REQ_BILDIRIM)
+        }
+
+        if (Settings.canDrawOverlays(this)) {
+            servisiBaslat()
+        } else {
+            AlertDialog.Builder(this)
+                .setTitle("Bir izin gerekiyor")
+                .setMessage(
+                    "Ekran her açıldığında bu kilit ekranının gelmesi için " +
+                        "\"Diğer uygulamaların üzerinde göster\" iznini açın."
+                )
+                .setPositiveButton("İzin ekranını aç") { _, _ ->
+                    startActivity(
+                        Intent(
+                            Settings.ACTION_MANAGE_OVERLAY_PERMISSION,
+                            Uri.parse("package:$packageName")
+                        )
+                    )
+                }
+                .setNegativeButton("Sonra", null)
+                .show()
+        }
+    }
+
+    private fun servisiBaslat() {
+        try {
+            KilitServisi.baslat(this)
+        } catch (e: Exception) {
+            Toast.makeText(this, "Arka plan servisi başlatılamadı", Toast.LENGTH_LONG).show()
+        }
+    }
+
+    override fun onResume() {
+        super.onResume()
+        // İzin ekranından dönünce servis henüz başlamadıysa başlat
+        if (Settings.canDrawOverlays(this)) servisiBaslat()
     }
 
     override fun onSaveInstanceState(outState: Bundle) {
