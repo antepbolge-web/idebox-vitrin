@@ -9,6 +9,9 @@ on:
       - 'kilit-ekrani/**'
       - '.github/workflows/kilit-ekrani-apk.yml'
 
+permissions:
+  contents: write
+
 jobs:
   build:
     runs-on: ubuntu-latest
@@ -38,3 +41,14 @@ jobs:
         with:
           name: kilit-ekrani-apk
           path: kilit-ekrani/app/build/outputs/apk/debug/app-debug.apk
+
+      - name: APK adini duzenle
+        run: cp kilit-ekrani/app/build/outputs/apk/debug/app-debug.apk kilit-ekrani.apk
+
+      - uses: softprops/action-gh-release@v2
+        with:
+          tag_name: kilit-ekrani-v${{ github.run_number }}
+          name: Kilit Ekrani v${{ github.run_number }}
+          target_commitish: ${{ github.sha }}
+          make_latest: true
+          files: kilit-ekrani.apk
