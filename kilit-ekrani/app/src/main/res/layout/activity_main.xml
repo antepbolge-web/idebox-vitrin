@@ -1,38 +1,123 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="#000000"
-    android:gravity="center"
-    android:orientation="vertical"
-    android:padding="24dp">
+    android:background="#000000">
 
-    <TextClock
-        android:id="@+id/saat"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:format24Hour="HH:mm"
-        android:format12Hour="HH:mm"
-        android:textColor="#FFFFFF"
-        android:textSize="96sp"
-        android:textStyle="bold" />
+    <!-- Galeriden seçilen duvar kâğıdı -->
+    <ImageView
+        android:id="@+id/arkaplan"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:scaleType="centerCrop" />
 
-    <TextClock
-        android:id="@+id/tarih"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="12dp"
-        android:format24Hour="d MMMM yyyy, EEEE"
-        android:format12Hour="d MMMM yyyy, EEEE"
-        android:textColor="#CCCCCC"
-        android:textSize="28sp" />
+    <!-- Yazıların okunması için hafif koyu perde -->
+    <View
+        android:id="@+id/perde"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:background="#66000000"
+        android:visibility="gone" />
 
-    <TextView
-        android:id="@+id/pil"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="40dp"
-        android:text="Pil: …"
-        android:textColor="#FFFFFF"
-        android:textSize="36sp" />
-</LinearLayout>
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:orientation="vertical">
+
+        <ScrollView
+            android:layout_width="match_parent"
+            android:layout_height="0dp"
+            android:layout_weight="1"
+            android:fillViewport="true">
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:gravity="center_horizontal"
+                android:orientation="vertical"
+                android:paddingStart="16dp"
+                android:paddingTop="48dp"
+                android:paddingEnd="16dp"
+                android:paddingBottom="16dp">
+
+                <TextClock
+                    android:id="@+id/saat"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:format12Hour="HH:mm"
+                    android:format24Hour="HH:mm"
+                    android:shadowColor="#CC000000"
+                    android:shadowRadius="8"
+                    android:textColor="#FFFFFF"
+                    android:textSize="96sp"
+                    android:textStyle="bold" />
+
+                <TextClock
+                    android:id="@+id/tarih"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="8dp"
+                    android:format12Hour="d MMMM yyyy, EEEE"
+                    android:format24Hour="d MMMM yyyy, EEEE"
+                    android:shadowColor="#CC000000"
+                    android:shadowRadius="6"
+                    android:textColor="#EEEEEE"
+                    android:textSize="26sp" />
+
+                <!-- Seçilen widget'lar buraya eklenir -->
+                <LinearLayout
+                    android:id="@+id/widgetAlani"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="24dp"
+                    android:orientation="vertical" />
+
+                <TextView
+                    android:id="@+id/pil"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="24dp"
+                    android:shadowColor="#CC000000"
+                    android:shadowRadius="6"
+                    android:text="Pil: …"
+                    android:textColor="#FFFFFF"
+                    android:textSize="32sp" />
+            </LinearLayout>
+        </ScrollView>
+
+        <!-- Başparmakla erişilen büyük düğmeler -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:background="#99000000"
+            android:orientation="horizontal"
+            android:padding="8dp">
+
+            <Button
+                android:id="@+id/widgetEkle"
+                android:layout_width="0dp"
+                android:layout_height="72dp"
+                android:layout_weight="1"
+                android:text="+ Widget"
+                android:textSize="18sp" />
+
+            <Button
+                android:id="@+id/widgetKaldir"
+                android:layout_width="0dp"
+                android:layout_height="72dp"
+                android:layout_marginStart="8dp"
+                android:layout_weight="1"
+                android:text="− Widget"
+                android:textSize="18sp" />
+
+            <Button
+                android:id="@+id/duvarKagidi"
+                android:layout_width="0dp"
+                android:layout_height="72dp"
+                android:layout_marginStart="8dp"
+                android:layout_weight="1"
+                android:text="Duvar kâğıdı"
+                android:textSize="18sp" />
+        </LinearLayout>
+    </LinearLayout>
+</FrameLayout>
