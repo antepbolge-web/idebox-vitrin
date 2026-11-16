@@ -125,22 +125,61 @@ class MainActivity : Activity() {
 
     // ---------- Widget gösterme ----------
 
+    /**
+     * İki sütunlu yerleşim: geniş widget'lar tam satır, küçükler yan yana ikişer.
+     */
     private fun widgetlariGoster() {
         widgetAlani.removeAllViews()
         val yogunluk = resources.displayMetrics.density
+        val ekranGenisligi = resources.displayMetrics.widthPixels
+        val bosluk = (12 * yogunluk).toInt()
         val gecerli = mutableListOf<Int>()
+        var satir: LinearLayout? = null
+
+        fun satiriKapat() {
+            // Tek widget kaldıysa sola yaslanmasın diye boş yer tutucu ekle
+            satir?.let {
+                if (it.childCount == 1) {
+                    it.addView(View(this), LinearLayout.LayoutParams(0, 1, 1f))
+                }
+            }
+            satir = null
+        }
+
         for (id in kayitliWidgetlar()) {
             val bilgi = widgetYoneticisi.getAppWidgetInfo(id) ?: continue
             gecerli.add(id)
             val gorunum = widgetSunucusu.createView(applicationContext, id, bilgi)
             gorunum.setAppWidget(id, bilgi)
             val yukseklik = maxOf(bilgi.minHeight, (120 * yogunluk).toInt())
-            val parametre = LinearLayout.LayoutParams(
-                LinearLayout.LayoutParams.MATCH_PARENT, yukseklik
-            )
-            parametre.topMargin = (12 * yogunluk).toInt()
-            widgetAlani.addView(gorunum, parametre)
+            val genis = bilgi.minWidth > ekranGenisligi * 0.55
+
+            if (genis) {
+                satiriKapat()
+                val parametre = LinearLayout.LayoutParams(
+                    LinearLayout.LayoutParams.MATCH_PARENT, yukseklik
+                )
+                parametre.topMargin = bosluk
+                widgetAlani.addView(gorunum, parametre)
+            } else {
+                if (satir == null || satir!!.childCount >= 2) {
+                    satiriKapat()
+                    val yeni = LinearLayout(this)
+                    yeni.orientation = LinearLayout.HORIZONTAL
+                    val satirParametre = LinearLayout.LayoutParams(
+                        LinearLayout.LayoutParams.MATCH_PARENT,
+                        LinearLayout.LayoutParams.WRAP_CONTENT
+                    )
+                    satirParametre.topMargin = bosluk
+                    widgetAlani.addView(yeni, satirParametre)
+                    satir = yeni
+                }
+                val parametre = LinearLayout.LayoutParams(0, yukseklik, 1f)
+                if (satir!!.childCount == 1) parametre.marginStart = bosluk
+                satir!!.addView(gorunum, parametre)
+            }
         }
+        satiriKapat()
         widgetlariKaydet(gecerli)
     }
 
