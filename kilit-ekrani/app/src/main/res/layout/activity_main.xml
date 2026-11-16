@@ -64,6 +64,17 @@
                     android:textColor="#EEEEEE"
                     android:textSize="26sp" />
 
+                <TextView
+                    android:id="@+id/pil"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="6dp"
+                    android:shadowColor="#CC000000"
+                    android:shadowRadius="6"
+                    android:text="Pil: …"
+                    android:textColor="#FFFFFF"
+                    android:textSize="24sp" />
+
                 <!-- Seçilen widget'lar buraya eklenir -->
                 <LinearLayout
                     android:id="@+id/widgetAlani"
@@ -71,17 +82,6 @@
                     android:layout_height="wrap_content"
                     android:layout_marginTop="24dp"
                     android:orientation="vertical" />
-
-                <TextView
-                    android:id="@+id/pil"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_marginTop="24dp"
-                    android:shadowColor="#CC000000"
-                    android:shadowRadius="6"
-                    android:text="Pil: …"
-                    android:textColor="#FFFFFF"
-                    android:textSize="32sp" />
             </LinearLayout>
         </ScrollView>
 
