@@ -80,6 +80,13 @@ class MainActivity : Activity() {
         findViewById<Button>(R.id.widgetKaldir).setOnClickListener { widgetKaldirmaListesi() }
         findViewById<Button>(R.id.duvarKagidi).setOnClickListener { duvarKagidiSec() }
 
+        // Düzenleme düğmeleri gizli; saate uzun basınca açılır/kapanır
+        val cubuk = findViewById<View>(R.id.duzenlemeCubugu)
+        findViewById<View>(R.id.saat).setOnLongClickListener {
+            cubuk.visibility = if (cubuk.visibility == View.VISIBLE) View.GONE else View.VISIBLE
+            true
+        }
+
         bekleyenWidget = savedInstanceState?.getInt("bekleyen", -1) ?: -1
         duvarKagidiniYukle()
         widgetlariGoster()
@@ -233,6 +240,13 @@ class MainActivity : Activity() {
         }
         satiriKapat()
         widgetlariKaydet(gecerli)
+
+        // Hiç widget yoksa düzenleme düğmelerini göster, varsa gizle
+        findViewById<View>(R.id.duzenlemeCubugu).visibility =
+            if (gecerli.isEmpty()) View.VISIBLE else View.GONE
+        // Ekran her zaman en üstten (büyük saatten) başlasın
+        val kaydirma = findViewById<View>(R.id.kaydirma)
+        kaydirma.post { kaydirma.scrollTo(0, 0) }
     }
 
     // ---------- Widget ekleme ----------
