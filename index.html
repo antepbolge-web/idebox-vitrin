@@ -129,7 +129,7 @@
   .sifirla:active:not(:disabled) { background: #e53935; color: #fff; }
   .sifirla:disabled { opacity: .35; cursor: default; }
   /* Sayfa altındaki "Sıralamayı sıfırla": seyrek kullanılır, sakin görünür */
-  .sira-sifirla-alan { margin-top: 40px; display: flex; justify-content: center; }
+  .sira-sifirla-alan { margin-top: 40px; display: flex; flex-direction: column; align-items: center; gap: 12px; }
   .sira-sifirla {
     min-height: 56px; width: 100%; max-width: 420px; padding: 0 20px; border-radius: 16px;
     border: 2px solid var(--turkuaz); background: transparent; color: var(--turkuaz);
@@ -312,6 +312,7 @@
   <p class="bos gizli" id="bos">Aramaya uyan uygulama yok.</p>
 
   <div class="sira-sifirla-alan">
+    <button id="disa-aktar" class="sira-sifirla" type="button">⬆ Sayaçları dışa aktar</button>
     <button id="sira-sifirla" class="sira-sifirla" type="button" disabled>↺ Sıralamayı sıfırla</button>
   </div>
 
@@ -683,6 +684,32 @@
   });
   onay.addEventListener("click", e => { if (e.target === onay) onayKapat(); });
   document.addEventListener("keydown", e => { if (e.key === "Escape" && !onay.classList.contains("gizli")) onayKapat(); });
+
+  // Sayaçları dışa aktar: WhatsApp, kullanım ve son 7 gün tek bir JSON dosyasına yazılır.
+  function sayacVerisi() {
+    const veri = { uygulama: "ideabox-vitrin", bicim: 1, tarih: new Date().toISOString(), whatsapp: {}, kullanim: {}, gunluk: gunOku() };
+    try {
+      for (let i = 0; i < localStorage.length; i++) {
+        const k = localStorage.key(i);
+        const n = Math.max(0, Math.floor(Number(localStorage.getItem(k)) || 0));
+        if (k.startsWith("vitrin-wa:") && n > 0) veri.whatsapp[k.slice(10)] = n;
+        else if (k.startsWith("vitrin-kul:") && n > 0) veri.kullanim[k.slice(11)] = n;
+      }
+    } catch (e) {}
+    return veri;
+  }
+  function disaAktar() {
+    const ad = "vitrin-sayaclar-" + bugunTarih() + ".json";
+    const blob = new Blob([JSON.stringify(sayacVerisi(), null, 2)], { type: "application/json" });
+    const a = document.createElement("a");
+    a.href = URL.createObjectURL(blob);
+    a.download = ad;
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    setTimeout(() => URL.revokeObjectURL(a.href), 1000);
+  }
+  document.getElementById("disa-aktar").addEventListener("click", disaAktar);
 
   // "Sıralamayı sıfırla": kullanım kaydı yoksa düğme pasif; önce onay sorulur.
   function siraDurum() {
