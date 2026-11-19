@@ -533,6 +533,7 @@
     const enEski = bugunTarih(sinir);
     Object.keys(kayit).forEach(t => { if (t < enEski) delete kayit[t]; });
     try { localStorage.setItem(GUN_ANAHTAR, JSON.stringify(kayit)); } catch (e) {}
+    ozetYaz();
   }
 
   // Günlük özet kartı: bugünün en çok kullanılan uygulaması, toplam dokunuş ve uygulama sayısı.
@@ -573,6 +574,24 @@
   toplamYaz();
   ozetYaz();
 
+  // Karta kaydır ve 2 saniye parlat (kısayol ve günlük özet kartı kullanır).
+  function karteGit(kart) {
+    kart.scrollIntoView({ behavior: "smooth", block: "center" });
+    kart.classList.remove("parla"); void kart.offsetWidth; kart.classList.add("parla");
+    clearTimeout(kart.parlaZaman);
+    kart.parlaZaman = setTimeout(() => kart.classList.remove("parla"), 2100);
+  }
+
+  // Günlük özet kartına dokununca: arama/süzgeç temizlenir, bugünün en çok kullanılanına gidilir.
+  document.getElementById("gunluk").addEventListener("click", () => {
+    const ad = document.getElementById("gunluk").dataset.en;
+    if (!ad) return;
+    const kart = [...document.querySelectorAll(".kart")].find(k => k.querySelector("h3").textContent === ad);
+    if (!kart) return;
+    if (kart.classList.contains("gizli")) { ara.value = ""; suz("hepsi"); }
+    karteGit(kart);
+  });
+
   // Ana ekran kısayolu (?ac=Uygulama adı): karta kaydır, 2 saniye parlat, kullanım olarak say.
   (function kisayol() {
     let ad = null;
@@ -585,11 +604,7 @@
     try { localStorage.setItem("vitrin-kul:" + ad, String(n)); } catch (e) {}
     gunKaydet(ad);
     siraDurum();
-    setTimeout(() => {
-      kart.scrollIntoView({ behavior: "smooth", block: "center" });
-      kart.classList.remove("parla"); void kart.offsetWidth; kart.classList.add("parla");
-      setTimeout(() => kart.classList.remove("parla"), 2100);
-    }, 300);
+    setTimeout(() => karteGit(kart), 300);
     try { history.replaceState(null, "", location.pathname); } catch (e) {}
   })();
 
@@ -640,6 +655,8 @@
       const liste = document.getElementById(g);
       [...liste.children].sort((a, b) => a.dataset.sira - b.dataset.sira).forEach(k => liste.appendChild(k));
     });
+    try { localStorage.removeItem(GUN_ANAHTAR); } catch (e) {}
+    ozetYaz();
     siraKapat();
     siraDurum();
     if (navigator.vibrate) navigator.vibrate(40);
