@@ -325,7 +325,7 @@
     <button id="sira-sifirla" class="sira-sifirla" type="button" disabled>↺ Sıralamayı sıfırla</button>
   </div>
 
-  <footer>ideabox · bilgiler apps/apk/APK.md dosyasından</footer>
+  <footer>ideabox · bilgiler cm/surum.json dosyasından</footer>
 </main>
 
 <div class="onay gizli" id="onay" role="alertdialog" aria-modal="true" aria-labelledby="onay-soru">
@@ -366,42 +366,94 @@
 </div>
 
 <script>
-  // Bilgiler apps/apk/APK.md ile aynı tutulur (2026-11-04).
+  // Bilgiler cm deposundaki surum.json ile aynı tutulur (ad, sürüm, paket, yenilik); tarih Drive apk-indir'den (2026-11-19).
   // whatsapp: okunmamış WhatsApp mesaj sayısı (elle yazılır; 0 ise rozet görünmez, 99'dan büyükse "99+").
   // simge: simgeler/ altındaki dosya; ekran: ekranlar/ altındaki görüntüler (ör. ["alarm-1.jpg"]).
   const ANDROID = /Android/i.test(navigator.userAgent);
   const UYGULAMALAR = [
-    { ad: "Cafer Telefon", paket: "tr.cafer.telefon", simge: "telefon.svg", surum: "1.20.0", tarih: "2026-11-04", whatsapp: 0, grup: "ana", yer: "Telefon",
-      aciklama: "iOS tarzı arama ve rehber: gelen arama ekranı, son aramalar, favoriler, numara engelleme.", yenilik: "Papirüs teması: kâğıt tonlarında 5. görünüm" },
-    { ad: "Vakit", paket: "tr.cafer.vakitmektup", simge: "vakit.png", surum: "1.1.2", tarih: "2026-11-04", whatsapp: 0, grup: "ana", yer: "Telefon",
-      aciklama: "Namaz vakitleri, takvim ve Kur'an-ı Kerim.", yenilik: "Yeni simge: modern, sade, iOS tarzı" },
-    { ad: "Mektup", paket: "tr.cafer.mektup", simge: "mektup.png", surum: "1.0.2", tarih: "2026-11-04", whatsapp: 0, grup: "ana", yer: "Telefon",
-      aciklama: "Mektubat-ı Rabbani okuma, not ve arama.", yenilik: "Yeni simge: modern, sade, iOS tarzı" },
-    { ad: "Notlar", paket: "tr.cafer.notdefteri", simge: "notlar.png", surum: "1.2.2", tarih: "2026-11-04", whatsapp: 0, grup: "ana", yer: "Telefon",
-      aciklama: "Notlar; Claude ile düzeltme ve özetleme.", yenilik: "Yeni simge: modern, sade, iOS tarzı" },
-    { ad: "Çeviri", paket: "tr.cafer.ceviri", simge: "ceviri.png", surum: "1.0.2", tarih: "2026-11-04", whatsapp: 0, grup: "ana", yer: "Telefon",
-      aciklama: "Çeviri, kelime defteri ve Claude ile çeviri.", yenilik: "Yeni simge: modern, sade, iOS tarzı" },
-    { ad: "Merkez", paket: "tr.cafer.merkez", simge: "merkez.png", ekran: ["merkez-1.jpg"], surum: "1.0.7", tarih: "2026-11-04", whatsapp: 0, grup: "ana", yer: "Telefon",
-      aciklama: "Araçlarıma tek yerden giriş.", yenilik: "Yazı boyutuna En küçük (%65) ve Çok küçük (%75) eklendi" },
-    { ad: "Arama Asistanı", paket: "tr.cafer.aramaasistani", simge: "arama.png", ekran: ["arama-1.jpg"], surum: "1.2.9", tarih: "2026-11-04", whatsapp: 0, grup: "yardimci", yer: "Telefon + Bilgisayar",
-      aciklama: "Spotlight tarzı arama: uygulama, dosya, kişi, hesap makinesi, sözlük, Vikipedi.", yenilik: "Papirüs teması: kâğıt tonlarında 5. görünüm" },
-    { ad: "PDF Asistanı", paket: "tr.cafer.pdfasistani", simge: "pdf.png", surum: "1.1.4", tarih: "2026-11-04", whatsapp: 0, grup: "yardimci", yer: "Telefon + Bilgisayar",
-      aciklama: "PDF okuma, imzalama, kamerayla tarama, bölme ve birleştirme.", yenilik: "Papirüs teması: kâğıt tonlarında 5. görünüm" },
-    { ad: "Cafer Güncelleyici", paket: "tr.cafer.guncelleyici", simge: "guncelleyici.png", ekran: ["guncelleyici-1.jpg"], surum: "1.0.4", tarih: "2026-11-04", whatsapp: 0, grup: "yardimci", yer: "Telefon",
-      aciklama: "Bütün uygulamalarımın yeni sürümünü tek listede gösterir; günlük bildirim ve widget.", yenilik: "Papirüs teması: kâğıt tonlarında 5. görünüm" },
-    { ad: "Cafer Başlatıcı", simge: "baslatici.svg", ekran: ["baslatici-1.jpg"], surum: "0.3.0", tarih: "2026-11-04", whatsapp: 0, grup: "yardimci", yer: "Telefon",
-      aciklama: "iOS tarzı cam görünümlü ana ekran: klasör kartları, hareket çubuğu, otomatik düzen.", yenilik: "Papirüs hazır teması" },
-    { ad: "Cafer Adım", paket: "tr.cafer.adim", simge: "adim.png", ekran: ["adim-1.jpg"], surum: "1.0.9", tarih: "2026-11-04", whatsapp: 0, grup: "yardimci", yer: "Telefon",
-      aciklama: "Adım sayar: günlük hedef, haftalık grafik, hatırlatma ve widget'lar.", yenilik: "Papirüs teması: kâğıt renkli açık tema. Ayarlar → Görünüm → Tema." },
-    { ad: "Alarm ve Saat", paket: "tr.cafer.saat", simge: "alarm.png", surum: "2.1.9", tarih: "2026-11-04", whatsapp: 0, grup: "yardimci", yer: "Telefon",
-      aciklama: "Saat ve namaz vakti widget'ları, vakte bağlı alarm, zamanlayıcı ve kronometre.", yenilik: "Papirüs teması: kâğıt tonlarında 5. görünüm" },
-    { ad: "Depo Asistanı", paket: "tr.cafer.depo", simge: "depo.png", ekran: ["depo-1.jpg"], surum: "2.1.6", tarih: "2026-11-04", whatsapp: 0, grup: "yardimci", yer: "Telefon + Bilgisayar",
-      aciklama: "Depolama temizliği: hızlı temizlik, yinelenen dosyalar, uygulama listesi.", yenilik: "Papirüs teması: kâğıt tonlarında 5. görünüm" },
-    { ad: "Dosya Yöneticisi", paket: "tr.cafer.dosya", simge: "dosya.png", surum: "1.2.2", tarih: "2026-11-04", whatsapp: 0, grup: "yardimci", yer: "Bilgisayar",
-      aciklama: "Dosya ve klasörleri düzenleme.", yenilik: "Papirüs teması: kâğıt tonlarında 5. görünüm" },
-    { ad: "Fotoğraf Görüntüleyici", paket: "tr.cafer.fotograf", simge: "fotograf.png", surum: "2.0.6", tarih: "2026-11-04", whatsapp: 0, grup: "yardimci", yer: "Bilgisayar",
-      aciklama: "Albümler, görüntüleyici, favoriler, düzenleme; HEIC ve video desteği.", yenilik: "Papirüs ailenin ortak teması oldu" }
+    { ad: "Telefon", paket: "tr.cafer.telefon", simge: "telefon.svg", surum: "1.50.0", tarih: "2026-11-19", whatsapp: 0, grup: "ana", yer: "Telefon",
+      aciklama: "iOS tarzı arama ve rehber: gelen arama ekranı, son aramalar, favoriler, numara engelleme.", yenilik: "Sesli asistan ana ekrana eklenir (ilk açılışta Ekle'ye basın)" },
+    { ad: "Speed Dial", paket: "tr.cafer.speeddial", surum: "1.3.3", tarih: "2026-11-18", whatsapp: 0, grup: "ana", yer: "Telefon",
+      aciklama: "Sık aranan kişilere tek dokunuşla arama.", yenilik: "Uygulamanın adı artık Speed Dial" },
+    { ad: "Kim Arıyor", paket: "tr.cafer.arayankim", surum: "1.0.2", tarih: "2026-11-16", whatsapp: 0, grup: "ana", yer: "Telefon",
+      aciklama: "Görüşme sırasında arayanı gösteren uyarı şeridi.", yenilik: "Görüşme sırasında uyarı küçük şerit olarak çıkıyor; kısa numaralara + eklenmiyor; yeni ad Kim Arıyor" },
+    { ad: "Vakit", paket: "tr.cafer.vakitmektup", simge: "vakit.png", surum: "1.1.4", tarih: "2026-11-16", whatsapp: 0, grup: "ana", yer: "Telefon",
+      aciklama: "Namaz vakitleri, takvim ve Kur'an-ı Kerim.", yenilik: "Aylık tabloda gün adları düzeldi (Paz/Pzt, Cum/Cmt); gece yarısı tablo yenilenir" },
+    { ad: "Mektubat", paket: "tr.cafer.mektup", simge: "mektup.png", surum: "1.0.4", tarih: "2026-11-16", whatsapp: 0, grup: "ana", yer: "Telefon",
+      aciklama: "Mektubat-ı Rabbani okuma, not ve arama.", yenilik: "Üstteki arama yazım eşlerini de buluyor; sonuç doğru sekmede açılıyor" },
+    { ad: "Defter", paket: "tr.cafer.notdefteri", simge: "notlar.png", surum: "1.4.0", tarih: "2026-11-17", whatsapp: 0, grup: "ana", yer: "Telefon",
+      aciklama: "Notlar; Claude ile düzeltme ve özetleme.", yenilik: "Claude menüsünde Merkez kalıpları (122)" },
+    { ad: "Çeviri", paket: "tr.cafer.ceviri", simge: "ceviri.png", surum: "1.0.4", tarih: "2026-11-16", whatsapp: 0, grup: "ana", yer: "Telefon",
+      aciklama: "Çeviri, kelime defteri ve Claude ile çeviri.", yenilik: "Geçmişe yazarken parçalar düşmüyor; gizlilik yazısı düzeltildi" },
+    { ad: "Merkez", paket: "tr.cafer.merkez", simge: "merkez.png", ekran: ["merkez-1.jpg"], surum: "1.1.17", tarih: "2026-11-16", whatsapp: 0, grup: "ana", yer: "Telefon",
+      aciklama: "Araçlarıma tek yerden giriş.", yenilik: "9 yeni prompt: öğrenci olup sına, açılış cümleleri, uzman planı, 7 günde öğren, en iyi prompt ve fazlası" },
+    { ad: "Kıble", paket: "tr.cafer.kible", surum: "1.0.3", tarih: "2026-11-16", whatsapp: 0, grup: "ana", yer: "Telefon",
+      aciklama: "Kıble yönü ve Güneş saati.", yenilik: "Jiroskopsuz telefonlarda da yön; Güneş saati daha kesin; konum kapalıysa uyarı" },
+    { ad: "Kilit", paket: "tr.cafer.kilit", surum: "1.2.4", tarih: "2026-11-17", whatsapp: 0, grup: "ana", yer: "Telefon",
+      aciklama: "Kilit ekranı; bildirimler üst çubukta.", yenilik: "Kilit ekranında bildirim kartı yok; bildirimler üst çubukta" },
+    { ad: "Alarmlar", paket: "tr.cafer.saat", simge: "alarm.png", surum: "2.2.4", tarih: "2026-11-16", whatsapp: 0, grup: "yardimci", yer: "Telefon",
+      aciklama: "Saat ve namaz vakti widget'ları, vakte bağlı alarm, zamanlayıcı ve kronometre.", yenilik: "Ertelemeler karışmıyor, aynı dakikadaki alarmlar birlikte çalıyor, alarm müziği duraklatıyor" },
+    { ad: "Hava", paket: "tr.cafer.hava", surum: "1.0.3", tarih: "2026-11-16", whatsapp: 0, grup: "yardimci", yer: "Telefon",
+      aciklama: "Hava durumu ve ana ekran widget'ı.", yenilik: "Widget ayarları birbirini değiştirmiyor; eski veri saatiyle gösteriliyor" },
+    { ad: "Saatler", paket: "tr.cafer.widget", surum: "1.0.5", tarih: "2026-11-16", whatsapp: 0, grup: "yardimci", yer: "Telefon",
+      aciklama: "Saat ve Vakit widget'ları.", yenilik: "Vakit widget'ı donmuyor; widget ayarları birbirini değiştirmiyor" },
+    { ad: "Spotlight", paket: "tr.cafer.aramaasistani", simge: "arama.png", ekran: ["arama-1.jpg"], surum: "1.2.18", tarih: "2026-11-18", whatsapp: 0, grup: "yardimci", yer: "Telefon + Bilgisayar",
+      aciklama: "Spotlight tarzı arama: uygulama, dosya, kişi, hesap makinesi, sözlük, Vikipedi.", yenilik: "Uygulamanın adı artık Spotlight" },
+    { ad: "PDF Araç", paket: "tr.cafer.pdfasistani", simge: "pdf.png", surum: "1.1.7", tarih: "2026-11-16", whatsapp: 0, grup: "yardimci", yer: "Telefon + Bilgisayar",
+      aciklama: "PDF okuma, imzalama, kamerayla tarama, bölme ve birleştirme.", yenilik: "WhatsApp ile gelen PDF'ler de listede; büyük fotoğraftan PDF daha az bellekle" },
+    { ad: "Depolama", paket: "tr.cafer.depo", simge: "depo.png", ekran: ["depo-1.jpg"], surum: "2.1.9", tarih: "2026-11-16", whatsapp: 0, grup: "yardimci", yer: "Telefon + Bilgisayar",
+      aciklama: "Depolama temizliği: hızlı temizlik, yinelenen dosyalar, uygulama listesi.", yenilik: "Hızlı Temizlik artık güvenli: son 24 saatin dosyaları, belgeler ve WhatsApp korunuyor; yalnız gösterilen dosyalar silinir" },
+    { ad: "Dosyalar", paket: "tr.cafer.dosya", simge: "dosya.png", surum: "1.2.4", tarih: "2026-11-16", whatsapp: 0, grup: "yardimci", yer: "Telefon + Bilgisayar",
+      aciklama: "Dosya ve klasörleri düzenleme.", yenilik: "Çöpü boşaltmak Galeri fotoğraflarını silmiyor; aynı adlı dosyalar çöpte kaybolmuyor" },
+    { ad: "Galeri", paket: "tr.cafer.fotograf", simge: "fotograf.png", surum: "2.0.9", tarih: "2026-11-16", whatsapp: 0, grup: "yardimci", yer: "Telefon + Bilgisayar",
+      aciklama: "Albümler, görüntüleyici, favoriler, düzenleme; HEIC ve video desteği.", yenilik: "Yeni Çöp ekranı (geri yükle); düzenlemede tarih ve konum korunuyor; aynı adlı fotoğraflar çöpte kaybolmuyor" },
+    { ad: "Rötuş", paket: "tr.cafer.rotus", surum: "1.2.0", tarih: "2026-11-17", whatsapp: 0, grup: "yardimci", yer: "Telefon",
+      aciklama: "Fotoğraf rötuşu ve düzenleme.", yenilik: "Claude'a sor: fotoğraf için ayar önerisi" },
+    { ad: "Güncelle", paket: "tr.cafer.guncelleyici", simge: "guncelleyici.png", ekran: ["guncelleyici-1.jpg"], surum: "1.0.6", tarih: "2026-11-16", whatsapp: 0, grup: "yardimci", yer: "Telefon",
+      aciklama: "Bütün uygulamalarımın yeni sürümünü tek listede gösterir; günlük bildirim ve widget.", yenilik: "Liste açılışta tazeleniyor; güncellemeyi kurunca eski bildirim kalkıyor" },
+    { ad: "Başlatıcı", simge: "baslatici.svg", ekran: ["baslatici-1.jpg"], surum: "0.3.0-cafer.31", tarih: "2026-11-19", whatsapp: 0, grup: "yardimci", yer: "Telefon",
+      aciklama: "iOS tarzı cam görünümlü ana ekran: klasör kartları, hareket çubuğu, otomatik düzen.", yenilik: "Vitrinden uygulama açma köprüsü: kartlardaki Aç düğmesi uygulamayı doğrudan açar" },
+    { ad: "Adım", paket: "tr.cafer.adim", simge: "adim.png", ekran: ["adim-1.jpg"], surum: "1.0.11", tarih: "2026-11-16", whatsapp: 0, grup: "yardimci", yer: "Telefon",
+      aciklama: "Adım sayar: günlük hedef, haftalık grafik, hatırlatma ve widget'lar.", yenilik: "Sayaç kapalı kaldığı saatlerin adımları doğru güne yazılıyor; sayaç durunca uyarı" },
+    { ad: "Şeker Defteri", paket: "tr.cafer.seker", surum: "1.3.0", tarih: "2026-11-18", whatsapp: 0, grup: "yardimci", yer: "Telefon",
+      aciklama: "Kan şekeri takibi: sensör verisi, değişim ve grafik.", yenilik: "Açılışta koyu canlı sayfa: büyük değer, ok, değişim, noktalı grafik (3-24 saat)" },
+    { ad: "Daily English", paket: "tr.cafer.dailyenglish", surum: "1.2.0", tarih: "2026-11-18", whatsapp: 0, grup: "yardimci", yer: "Telefon",
+      aciklama: "Günlük İngilizce kelime çalışması ve sınav.", yenilik: "90 yeni kelime (telefon menüleri, yurt-ofis, gezi), ters sınav TR→EN, dinleme sınavı, karışık tekrar, 12 yeni dil mantığı kartı" },
+    { ad: "Fişmatik", surum: "1.3.5", tarih: "2026-11-04", whatsapp: 0, grup: "yardimci", yer: "Bilgisayar",
+      aciklama: "Fiş ve harcama kaydı.", yenilik: "Papirüs teması: kâğıt tonlarında 5. görünüm" },
+    { ad: "Masaüstü Widget", surum: "2.0.3", tarih: "2026-11-03", whatsapp: 0, grup: "yardimci", yer: "Bilgisayar",
+      aciklama: "Masaüstü için saat ve vakit widget'ı.", yenilik: "Cafer Ailesi temaları (Otomatik, Açık, Koyu, Turkuaz-Altın) + Sabah vakti" }
   ];
+
+  // Uygulamalar telefondaki adlarına geçti (2026-11-19). Sayaçlar ada bağlı tutulduğu için eski adlardaki
+  // kayıtlar bir kez yeni adlara taşınır; kısayol ve içe aktarma da eski adları tanır.
+  const ESKI_ADLAR = {"Cafer Telefon": "Telefon", "Mektup": "Mektubat", "Notlar": "Defter", "Alarm ve Saat": "Alarmlar", "Arama Asistanı": "Spotlight", "PDF Asistanı": "PDF Araç", "Depo Asistanı": "Depolama", "Dosya Yöneticisi": "Dosyalar", "Fotoğraf Görüntüleyici": "Galeri", "Cafer Güncelleyici": "Güncelle", "Cafer Başlatıcı": "Başlatıcı", "Cafer Adım": "Adım"};
+  function guncelAd(ad) { return ESKI_ADLAR[ad] || ad; }
+  (function adTasi() {
+    try {
+      Object.keys(ESKI_ADLAR).forEach(eski => {
+        ["vitrin-kul:", "vitrin-wa:"].forEach(on => {
+          const deger = localStorage.getItem(on + eski);
+          if (deger === null) return;
+          if (localStorage.getItem(on + ESKI_ADLAR[eski]) === null) localStorage.setItem(on + ESKI_ADLAR[eski], deger);
+          localStorage.removeItem(on + eski);
+        });
+      });
+      const g = JSON.parse(localStorage.getItem("vitrin-gun") || "{}");
+      let degisti = false;
+      Object.values(g).forEach(gun => {
+        if (!gun || typeof gun !== "object") return;
+        Object.keys(gun).forEach(eski => {
+          if (!ESKI_ADLAR[eski]) return;
+          const yeni = ESKI_ADLAR[eski];
+          gun[yeni] = (Number(gun[yeni]) || 0) + (Number(gun[eski]) || 0);
+          delete gun[eski];
+          degisti = true;
+        });
+      });
+      if (degisti) localStorage.setItem("vitrin-gun", JSON.stringify(g));
+    } catch (e) {}
+  })();
 
   // Son 3 günde güncellenenler "Yeni" rozeti alır.
   const YENI_GUN = 3;
@@ -694,6 +746,7 @@
     let ad = null;
     try { ad = new URLSearchParams(location.search).get("ac"); } catch (e) {}
     if (!ad) return;
+    ad = guncelAd(ad);
     const kart = [...document.querySelectorAll(".kart")].find(k => k.querySelector("h3").textContent === ad);
     if (!kart) return;
     const n = (Number(kart.dataset.kul) || 0) + 1;
@@ -794,7 +847,7 @@
     const temiz = { whatsapp: {}, kullanim: {}, gunluk: {}, tarih: typeof v.tarih === "string" ? v.tarih : "" };
     ["whatsapp", "kullanim"].forEach(t => {
       const k = v[t] && typeof v[t] === "object" ? v[t] : {};
-      Object.keys(k).forEach(ad => { if (adlar.has(ad) && sayi(k[ad])) temiz[t][ad] = sayi(k[ad]); });
+      Object.keys(k).forEach(eski => { const ad = guncelAd(eski); if (adlar.has(ad) && sayi(k[eski])) temiz[t][ad] = (temiz[t][ad] || 0) + sayi(k[eski]); });
     });
     const sinir = new Date(); sinir.setDate(sinir.getDate() - 6);
     const enEski = bugunTarih(sinir);
@@ -802,7 +855,7 @@
     Object.keys(g).forEach(t => {
       if (!/^\d{4}-\d{2}-\d{2}$/.test(t) || t < enEski || !g[t] || typeof g[t] !== "object") return;
       const gun = {};
-      Object.keys(g[t]).forEach(ad => { if (adlar.has(ad) && sayi(g[t][ad])) gun[ad] = sayi(g[t][ad]); });
+      Object.keys(g[t]).forEach(eski => { const ad = guncelAd(eski); if (adlar.has(ad) && sayi(g[t][eski])) gun[ad] = (gun[ad] || 0) + sayi(g[t][eski]); });
       if (Object.keys(gun).length) temiz.gunluk[t] = gun;
     });
     return temiz;
@@ -864,6 +917,7 @@
     let ad = null;
     try { ad = new URLSearchParams(location.search).get("acilamadi"); } catch (e) {}
     if (!ad) return;
+    ad = guncelAd(ad);
     try { history.replaceState(null, "", location.pathname); } catch (e) {}
     iceAc("Uygulama açılamadı.", ad + " açılamadı. Cafer Başlatıcı'nın son sürümü (0.3.0-cafer.31 ya da sonrası) kurulu olmalı.", false);
   })();
