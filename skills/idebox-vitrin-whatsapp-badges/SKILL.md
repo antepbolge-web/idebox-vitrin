@@ -34,7 +34,7 @@ Static, server-less showcase page: `index.html` (data + CSS + JS in one file), `
 | 7-day mini chart (cache v10) | `#hafta` (`role="img"`, aria-label lists every day's total) inside `#gunluk`, under a divider. `haftaYaz()` runs at the start of `ozetYaz()`, so it refreshes with the summary (taps, shortcut, 60 s timer, `visibilitychange`, reset). One series: total taps per day from `vitrin-gun`, oldest left → today right; labels `Pz Pt Sa Ça Pe Cu Ct` by `getDay()`, today labelled "Bugün". Bars grow from the baseline, max 44 px, min 6 px, 4 px rounded top; value sits directly above each bar; zero days = 2 px `--ayrac` line with no number. Today = `--turkuaz`, other days = `color-mix(--turkuaz 38%)`. Today's column has `flex-grow: 1.45` so "Bugün" fits; under 360 px width the gap and label size shrink. |
 | Export (cache v11) | `#disa-aktar` at the page bottom. `sayacVerisi()` = `{uygulama:"ideabox-vitrin", bicim:1, tarih:ISO, whatsapp:{ad:n}, kullanim:{ad:n}, gunluk}` (zeros omitted). On touch devices (`pointer: coarse`) with `navigator.canShare({files})` it opens the share sheet with a **`.txt`** file (Android Chrome refuses to share `.json`); `AbortError` = user cancelled, do nothing; any other error or no share support = download `vitrin-sayaclar-YYYY-MM-DD.json`. |
 | Import | `#ice-aktar` opens hidden `#ice-dosya` (`.json,.txt`). `iceDenetle()` requires `uygulama === "ideabox-vitrin"`, keeps only app names in `UYGULAMALAR`, integers 1…1,000,000, `gunluk` dates within the last 7 days; files > 1 MB are rejected. `#onay-ice` shows file date + totals; error mode hides "Evet" and renames "Vazgeç" to "Tamam". Yes = **replace**: remove all `vitrin-wa:*` / `vitrin-kul:*`, write file values and `vitrin-gun`, then `location.reload()` so order, badges, summary and chart rebuild. |
-| Limits | Apps have no URLs yet, so shortcuts open the showcase card, not the app. Manifest shortcuts work on Android only (not iOS); the page may need to be re-added to the home screen to pick them up. The shortcut list is static and does not follow usage. |
+| Open app (cache v14) | Apps are Android APKs, not web pages; each entry has `paket` (package name, source: `ideabox/apps/apk/APK.md`). On Android only, cards with `paket` get a `.ac-dugme` "▶ Aç" button (`stopPropagation`, counts usage). Chrome won't open the apps' launcher activities from a web link (not BROWSABLE), so `uygulamaAc()` goes through the **Cafer Başlatıcı bridge**: `intent://ac?paket=<pkg>#Intent;scheme=cafer;package=tr.cafer.baslatici;S.browser_fallback_url=<vitrin>?acilamadi=<ad>;end`. The bridge (`cafer-baslatici` ≥ 0.3.0-cafer.31, `VitrinKopruActivity`) opens only `tr.cafer.*` and never itself, so "Cafer Başlatıcı" has no `paket`. `?acilamadi=` shows a dialog asking to install the latest Başlatıcı. Notlar → Defter (`tr.cafer.notdefteri`). Home-screen shortcuts (`?ac=`) open the app itself on Android; elsewhere they scroll to and glow the card. |
 
 ## Rules to keep
 
@@ -57,6 +57,8 @@ Static, server-less showcase page: `index.html` (data + CSS + JS in one file), `
 - For card-sized screenshots use `locator('#gunluk').screenshot()`; a manual `clip` from `boundingBox()` can cut the card.
 - Check text overflow automatically: any child with `scrollWidth > clientWidth + 1` is a fail; test at 320 px and 390 px.
 - `navigator.share` cannot open in headless Chromium: stub `navigator.share`/`canShare` with `addInitScript` to test share, cancel (`AbortError`) and failure fallbacks; test import with `page.setInputFiles('#ice-dosya', path)`.
+- Chrome `intent:` links can't be verified headless: capture `page.on('request')` URLs starting with `intent:`; the real test is on the phone.
+- Code that runs at page load must sit after every `const` it uses (dialogs, `KOPRU_PAKET`), or it hits the temporal dead zone.
 - Screenshot at 390×844, `deviceScaleFactor: 2`, both `colorScheme` values.
 
 ## Workflow used (user preferences)
@@ -65,6 +67,6 @@ Plan in 5 points → wait for approval → one step at a time, ask "Shall I cont
 
 ## Possible next steps
 
-1. Add real app URLs so shortcuts and an "Aç" button open the apps directly.
+1. Sync showcase names/versions with `ideabox/apps/apk/APK.md` (names and versions are outdated).
 2. Hide the mini chart while the whole week is empty.
 3. Remind to export once a week (small note under the export button with the last export date).
