@@ -103,6 +103,15 @@
   }
   .sifirla:active:not(:disabled) { background: #e53935; color: #fff; }
   .sifirla:disabled { opacity: .35; cursor: default; }
+  /* Sayfa altındaki "Sıralamayı sıfırla": seyrek kullanılır, sakin görünür */
+  .sira-sifirla-alan { margin-top: 40px; display: flex; justify-content: center; }
+  .sira-sifirla {
+    min-height: 56px; width: 100%; max-width: 420px; padding: 0 20px; border-radius: 16px;
+    border: 2px solid var(--turkuaz); background: transparent; color: var(--turkuaz);
+    font: inherit; font-size: 18px; font-weight: 700; cursor: pointer;
+  }
+  .sira-sifirla:active:not(:disabled) { background: var(--turkuaz); color: #fff; }
+  .sira-sifirla:disabled { opacity: .35; cursor: default; }
   .izin {
     flex: 1 1 100%; min-height: 52px; border-radius: 14px; border: 2px solid var(--turkuaz);
     background: var(--turkuaz-acik); color: var(--yazi); font: inherit; font-size: 18px; font-weight: 700; cursor: pointer;
@@ -267,6 +276,10 @@
   <div class="liste" id="yardimci"></div>
 
   <p class="bos gizli" id="bos">Aramaya uyan uygulama yok.</p>
+
+  <div class="sira-sifirla-alan">
+    <button id="sira-sifirla" class="sira-sifirla" type="button">↺ Sıralamayı sıfırla</button>
+  </div>
 
   <footer>ideabox · bilgiler apps/apk/APK.md dosyasından</footer>
 </main>
