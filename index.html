@@ -280,7 +280,7 @@
   <p class="bos gizli" id="bos">Aramaya uyan uygulama yok.</p>
 
   <div class="sira-sifirla-alan">
-    <button id="sira-sifirla" class="sira-sifirla" type="button">↺ Sıralamayı sıfırla</button>
+    <button id="sira-sifirla" class="sira-sifirla" type="button" disabled>↺ Sıralamayı sıfırla</button>
   </div>
 
   <footer>ideabox · bilgiler apps/apk/APK.md dosyasından</footer>
@@ -455,9 +455,10 @@
     try { kul = Math.max(0, Math.floor(Number(localStorage.getItem(KUL)) || 0)); } catch (e) {}
     el.dataset.kul = kul;
     el.addEventListener("click", () => {
-      kul += 1;
-      el.dataset.kul = kul;
-      try { localStorage.setItem(KUL, String(kul)); } catch (e) {}
+      const n = (Number(el.dataset.kul) || 0) + 1;
+      el.dataset.kul = n;
+      try { localStorage.setItem(KUL, String(n)); } catch (e) {}
+      siraDurum();
     });
     el.dataset.ara = [u.ad, u.aciklama, u.yenilik || "", u.yer].join(" ").toLocaleLowerCase("tr");
     if (yeniMi(u.tarih)) {
@@ -499,8 +500,11 @@
   function kullanim(u) {
     try { return Math.max(0, Math.floor(Number(localStorage.getItem("vitrin-kul:" + u.ad)) || 0)); } catch (e) { return 0; }
   }
+  // Varsayılan sıra (en yeni güncelleme önde) her kartta saklanır; sıfırlamada buna dönülür.
+  const varsayilan = [...UYGULAMALAR].sort((a, b) => b.tarih.localeCompare(a.tarih)).map(u => u.ad);
   [...UYGULAMALAR].sort((a, b) => (kullanim(b) - kullanim(a)) || b.tarih.localeCompare(a.tarih)).forEach((u, i) => {
     const kart = kartYap(u);
+    kart.dataset.sira = varsayilan.indexOf(u.ad);
     kart.style.animationDelay = (i * 40) + "ms";
     document.getElementById(u.grup).appendChild(kart);
   });
@@ -517,6 +521,7 @@
     const n = (Number(kart.dataset.kul) || 0) + 1;
     kart.dataset.kul = n;
     try { localStorage.setItem("vitrin-kul:" + ad, String(n)); } catch (e) {}
+    siraDurum();
     setTimeout(() => {
       kart.scrollIntoView({ behavior: "smooth", block: "center" });
       kart.classList.remove("parla"); void kart.offsetWidth; kart.classList.add("parla");
@@ -552,13 +557,30 @@
   onay.addEventListener("click", e => { if (e.target === onay) onayKapat(); });
   document.addEventListener("keydown", e => { if (e.key === "Escape" && !onay.classList.contains("gizli")) onayKapat(); });
 
-  // "Sıralamayı sıfırla": önce onay sorulur.
+  // "Sıralamayı sıfırla": kullanım kaydı yoksa düğme pasif; önce onay sorulur.
+  function siraDurum() {
+    const d = document.getElementById("sira-sifirla");
+    if (d) d.disabled = ![...document.querySelectorAll(".kart")].some(k => Number(k.dataset.kul) > 0);
+  }
+  siraDurum();
   const onaySira = document.getElementById("onay-sira");
   function siraAc() { onaySira.classList.remove("gizli"); document.getElementById("sira-vazgec").focus(); }
   function siraKapat() { onaySira.classList.add("gizli"); }
   document.getElementById("sira-sifirla").addEventListener("click", siraAc);
   document.getElementById("sira-vazgec").addEventListener("click", siraKapat);
-  document.getElementById("sira-evet").addEventListener("click", siraKapat);
+  document.getElementById("sira-evet").addEventListener("click", () => {
+    document.querySelectorAll(".kart").forEach(k => {
+      k.dataset.kul = 0;
+      try { localStorage.removeItem("vitrin-kul:" + k.querySelector("h3").textContent); } catch (e) {}
+    });
+    ["ana", "yardimci"].forEach(g => {
+      const liste = document.getElementById(g);
+      [...liste.children].sort((a, b) => a.dataset.sira - b.dataset.sira).forEach(k => liste.appendChild(k));
+    });
+    siraKapat();
+    siraDurum();
+    if (navigator.vibrate) navigator.vibrate(40);
+  });
   onaySira.addEventListener("click", e => { if (e.target === onaySira) siraKapat(); });
   document.addEventListener("keydown", e => { if (e.key === "Escape" && !onaySira.classList.contains("gizli")) siraKapat(); });
 
