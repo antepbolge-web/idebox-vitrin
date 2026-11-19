@@ -30,9 +30,9 @@
   ],
   "shortcuts": [
     {
-      "name": "Cafer Telefon",
-      "short_name": "Cafer Telefon",
-      "url": "./?ac=Cafer%20Telefon",
+      "name": "Telefon",
+      "short_name": "Telefon",
+      "url": "./?ac=Telefon",
       "icons": [
         {
           "src": "simgeler/telefon-256.png",
@@ -54,9 +54,9 @@
       ]
     },
     {
-      "name": "Notlar",
-      "short_name": "Notlar",
-      "url": "./?ac=Notlar",
+      "name": "Defter",
+      "short_name": "Defter",
+      "url": "./?ac=Defter",
       "icons": [
         {
           "src": "simgeler/notlar.png",
