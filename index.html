@@ -131,6 +131,8 @@
     border: 2px solid var(--ayrac); background: var(--kart); color: var(--yazi);
   }
   .onay-dugmeler #onay-evet { background: #e53935; border-color: #e53935; color: #fff; }
+  .onay-dugmeler #sira-evet { background: var(--turkuaz); border-color: var(--turkuaz); color: #fff; }
+  .onay-kutu .onay-not { margin: -8px 0 20px; font-size: 18px; font-weight: 400; color: var(--soluk); }
 
   /* Bölümler */
   h2 { margin: 36px 4px 12px; font-size: 24px; }
@@ -290,6 +292,17 @@
     <div class="onay-dugmeler">
       <button type="button" id="onay-vazgec">Vazgeç</button>
       <button type="button" id="onay-evet">Evet, sıfırla</button>
+    </div>
+  </div>
+</div>
+
+<div class="onay gizli" id="onay-sira" role="alertdialog" aria-modal="true" aria-labelledby="sira-soru">
+  <div class="onay-kutu">
+    <p id="sira-soru">Kullanım sayıları sıfırlansın mı?</p>
+    <p class="onay-not">Kartlar varsayılan sıraya döner. WhatsApp sayaçları değişmez.</p>
+    <div class="onay-dugmeler">
+      <button type="button" id="sira-vazgec">Vazgeç</button>
+      <button type="button" id="sira-evet">Evet, sıfırla</button>
     </div>
   </div>
 </div>
@@ -538,6 +551,16 @@
   });
   onay.addEventListener("click", e => { if (e.target === onay) onayKapat(); });
   document.addEventListener("keydown", e => { if (e.key === "Escape" && !onay.classList.contains("gizli")) onayKapat(); });
+
+  // "Sıralamayı sıfırla": önce onay sorulur.
+  const onaySira = document.getElementById("onay-sira");
+  function siraAc() { onaySira.classList.remove("gizli"); document.getElementById("sira-vazgec").focus(); }
+  function siraKapat() { onaySira.classList.add("gizli"); }
+  document.getElementById("sira-sifirla").addEventListener("click", siraAc);
+  document.getElementById("sira-vazgec").addEventListener("click", siraKapat);
+  document.getElementById("sira-evet").addEventListener("click", siraKapat);
+  onaySira.addEventListener("click", e => { if (e.target === onaySira) siraKapat(); });
+  document.addEventListener("keydown", e => { if (e.key === "Escape" && !onaySira.classList.contains("gizli")) siraKapat(); });
 
   // Süzgeç (Tümü / Telefon / Bilgisayar) ve arama birlikte çalışır.
   const ara = document.getElementById("ara");
