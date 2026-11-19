@@ -458,6 +458,7 @@
       const n = (Number(el.dataset.kul) || 0) + 1;
       el.dataset.kul = n;
       try { localStorage.setItem(KUL, String(n)); } catch (e) {}
+      gunKaydet(u.ad);
       siraDurum();
     });
     el.dataset.ara = [u.ad, u.aciklama, u.yenilik || "", u.yer].join(" ").toLocaleLowerCase("tr");
@@ -494,6 +495,31 @@
   perde.addEventListener("click", e => { if (e.target === perde || e.target.id === "kaydir") perdeKapat(); });
   document.addEventListener("keydown", e => { if (e.key === "Escape") perdeKapat(); });
 
+  // Günlük kullanım kaydı: { "YYYY-AA-GG": { "Uygulama": sayı } }, telefonun yerel tarihiyle.
+  // Yalnızca son 7 gün tutulur; daha eskisi her kayıtta silinir.
+  const GUN_ANAHTAR = "vitrin-gun";
+  function bugunTarih(d) {
+    d = d || new Date();
+    return d.getFullYear() + "-" + String(d.getMonth() + 1).padStart(2, "0") + "-" + String(d.getDate()).padStart(2, "0");
+  }
+  function gunOku() {
+    try {
+      const v = JSON.parse(localStorage.getItem(GUN_ANAHTAR) || "{}");
+      return v && typeof v === "object" && !Array.isArray(v) ? v : {};
+    } catch (e) { return {}; }
+  }
+  function gunKaydet(ad) {
+    const kayit = gunOku();
+    const bugun = bugunTarih();
+    const gun = kayit[bugun] && typeof kayit[bugun] === "object" ? kayit[bugun] : {};
+    gun[ad] = (Number(gun[ad]) || 0) + 1;
+    kayit[bugun] = gun;
+    const sinir = new Date(); sinir.setDate(sinir.getDate() - 6);
+    const enEski = bugunTarih(sinir);
+    Object.keys(kayit).forEach(t => { if (t < enEski) delete kayit[t]; });
+    try { localStorage.setItem(GUN_ANAHTAR, JSON.stringify(kayit)); } catch (e) {}
+  }
+
   // Akıllı sıralama: en çok dokunulan uygulama grubunun en üstünde.
   // Kullanım eşitse en yeni güncelleme önde; o da eşitse listedeki sıra korunur.
   // Sıra yalnızca vitrin açılırken kurulur; dokunurken kartlar yer değiştirmez.
@@ -521,6 +547,7 @@
     const n = (Number(kart.dataset.kul) || 0) + 1;
     kart.dataset.kul = n;
     try { localStorage.setItem("vitrin-kul:" + ad, String(n)); } catch (e) {}
+    gunKaydet(ad);
     siraDurum();
     setTimeout(() => {
       kart.scrollIntoView({ behavior: "smooth", block: "center" });
