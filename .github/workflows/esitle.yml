@@ -1,0 +1,52 @@
+name: Vitrini surum.json ile eşitle
+
+# Her gün bir kez (ve istendiğinde elle) cm deposundaki surum.json'u okur; kartların yalnızca
+# sürüm, tarih ve "Bu sürümde" notunu günceller (tools/esitle.py). Değişiklik yoksa hiçbir şey yapmaz.
+# Yeni uygulama ve ad değişikliği eklenmez, yalnızca özet sayfasına yazılır.
+
+on:
+  schedule:
+    - cron: "23 4 * * *"   # her gün 04:23 UTC (Türkiye saatiyle 07:23)
+  workflow_dispatch:
+
+concurrency:
+  group: vitrin-esitle
+  cancel-in-progress: false
+
+permissions:
+  contents: write
+  pages: write
+
+jobs:
+  esitle:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          ref: main
+
+      - name: Eşitle
+        id: esitle
+        run: |
+          python3 tools/esitle.py | tee rapor.txt
+          {
+            echo "### Vitrin eşitleme"
+            echo '```'
+            cat rapor.txt
+            echo '```'
+          } >> "$GITHUB_STEP_SUMMARY"
+          if grep -q '^DEGISTI' rapor.txt; then echo "degisti=1" >> "$GITHUB_OUTPUT"; fi
+
+      - name: Kaydet ve yayınla
+        if: steps.esitle.outputs.degisti == '1'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add index.html sw.js
+          git commit -q -m "Vitrin surum.json ile eşitlendi ($(TZ=Europe/Istanbul date +%F))" -m "$(grep -v '^DEGIS' rapor.txt)"
+          git push -q origin HEAD:main
+          # GITHUB_TOKEN ile yapılan gönderim Pages derlemesini kendiliğinden başlatmaz; elle iste.
+          gh api -X POST "repos/${GITHUB_REPOSITORY}/pages/builds" >/dev/null || echo "::warning::Pages derlemesi istenemedi; sayfa bir sonraki gönderimde yenilenir."
