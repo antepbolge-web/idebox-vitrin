@@ -464,8 +464,13 @@
   perde.addEventListener("click", e => { if (e.target === perde || e.target.id === "kaydir") perdeKapat(); });
   document.addEventListener("keydown", e => { if (e.key === "Escape") perdeKapat(); });
 
-  // En yeni güncelleme en üstte; tarih aynıysa listedeki sıra korunur.
-  [...UYGULAMALAR].sort((a, b) => b.tarih.localeCompare(a.tarih)).forEach((u, i) => {
+  // Akıllı sıralama: en çok dokunulan uygulama grubunun en üstünde.
+  // Kullanım eşitse en yeni güncelleme önde; o da eşitse listedeki sıra korunur.
+  // Sıra yalnızca vitrin açılırken kurulur; dokunurken kartlar yer değiştirmez.
+  function kullanim(u) {
+    try { return Math.max(0, Math.floor(Number(localStorage.getItem("vitrin-kul:" + u.ad)) || 0)); } catch (e) { return 0; }
+  }
+  [...UYGULAMALAR].sort((a, b) => (kullanim(b) - kullanim(a)) || b.tarih.localeCompare(a.tarih)).forEach((u, i) => {
     const kart = kartYap(u);
     kart.style.animationDelay = (i * 40) + "ms";
     document.getElementById(u.grup).appendChild(kart);
