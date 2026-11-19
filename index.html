@@ -112,6 +112,8 @@
   .hafta .cubuk.sifir { height: 2px !important; border-radius: 1px; background: var(--ayrac); }
   .hafta .gunad { margin-top: 4px; font-size: 15px; color: var(--soluk); }
   .hafta .bugun .cubuk:not(.sifir) { background: var(--turkuaz); }
+  .hafta .gun.bugun { flex-grow: 1.45; } /* "Bugün" etiketi dar ekranda da sığsın */
+  @media (max-width: 359px) { .hafta { gap: 3px; } .hafta .gunad { font-size: 14px; } }
   .hafta .bugun .deger, .hafta .bugun .gunad { color: inherit; font-weight: 700; }
   .gunluk .gunluk-simge { font-size: 30px; line-height: 1; flex: 0 0 auto; }
   .gunluk .gunluk-metin { min-width: 0; }
