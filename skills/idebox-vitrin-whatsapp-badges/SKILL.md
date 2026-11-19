@@ -31,6 +31,7 @@ Static, server-less showcase page: `index.html` (data + CSS + JS in one file), `
 | Reset order (cache v8) | `#sira-sifirla` button at the page bottom above `<footer>` (turquoise outline, 56 px, full width up to 420 px). Disabled while every card has `dataset.kul == 0` (`siraDurum()`, called on load, card tap, shortcut, reset). Opens `#onay-sira` (same `.onay` styles, turquoise "Evet, sıfırla", note that WhatsApp counters stay). Yes = remove all `vitrin-kul:*` keys, set `dataset.kul = 0`, re-append cards per group by `dataset.sira` (default order index: date desc, list order), vibrate 40 ms. |
 | Daily log (cache v9) | `localStorage` key `vitrin-gun` = `{"YYYY-MM-DD": {"<app>": n}}`, **local** date via `bugunTarih()`. `gunKaydet(ad)` is called from card taps and the shortcut handler (not WhatsApp icon taps); keeps only the last 7 days; calls `ozetYaz()`. |
 | Daily summary card | `#gunluk` button below `.ozet`, above `#ara` (outside `.ozet` so `.ozet div` card styles do not apply). Shows "Bugün en çok: <b>App (n)</b>" + "Bugün toplam X dokunuş · Y uygulama", or "Bugün henüz bir uygulama açılmadı." when empty. Refreshes live, every 60 s and on `visibilitychange` so it resets after midnight. Tap = clear search/filter if the card is hidden, then `karteGit(kart)` (shared scroll + 2 s `.parla` glow, also used by shortcuts). "Sıralamayı sıfırla" also removes `vitrin-gun`. |
+| 7-day mini chart (cache v10) | `#hafta` (`role="img"`, aria-label lists every day's total) inside `#gunluk`, under a divider. `haftaYaz()` runs at the start of `ozetYaz()`, so it refreshes with the summary (taps, shortcut, 60 s timer, `visibilitychange`, reset). One series: total taps per day from `vitrin-gun`, oldest left → today right; labels `Pz Pt Sa Ça Pe Cu Ct` by `getDay()`, today labelled "Bugün". Bars grow from the baseline, max 44 px, min 6 px, 4 px rounded top; value sits directly above each bar; zero days = 2 px `--ayrac` line with no number. Today = `--turkuaz`, other days = `color-mix(--turkuaz 38%)`. Today's column has `flex-grow: 1.45` so "Bugün" fits; under 360 px width the gap and label size shrink. |
 | Limits | Apps have no URLs yet, so shortcuts open the showcase card, not the app. Manifest shortcuts work on Android only (not iOS); the page may need to be re-added to the home screen to pick them up. The shortcut list is static and does not follow usage. |
 
 ## Rules to keep
@@ -51,6 +52,8 @@ Static, server-less showcase page: `index.html` (data + CSS + JS in one file), `
 - After `reload()` the browser restores the old scroll position: wait, then `scrollTo(0,0)` before a top-of-page screenshot.
 - Cards with screenshots (`ekran:`) open the `#perde` dialog on tap, which blocks further taps; use cards without screenshots for repeated-tap tests.
 - Test the day change with `page.clock.install({ time: 23:58 })` then `clock.runFor(3 min)`.
+- For card-sized screenshots use `locator('#gunluk').screenshot()`; a manual `clip` from `boundingBox()` can cut the card.
+- Check text overflow automatically: any child with `scrollWidth > clientWidth + 1` is a fail; test at 320 px and 390 px.
 - Screenshot at 390×844, `deviceScaleFactor: 2`, both `colorScheme` values.
 
 ## Workflow used (user preferences)
@@ -61,4 +64,4 @@ Plan in 5 points → wait for approval → one step at a time, ask "Shall I cont
 
 1. Add real app URLs so shortcuts and an "Aç" button open the apps directly.
 2. Export/import counters as a file to move them between devices.
-3. A 7-day mini chart in the summary card using the existing `vitrin-gun` data.
+3. Hide the mini chart while the whole week is empty.
