@@ -28,6 +28,7 @@ Static, server-less showcase page: `index.html` (data + CSS + JS in one file), `
 | Smart sorting | On page load only, `kullanim(u)` reads the counter; sort = usage desc, then `tarih` desc, then list order (stable sort). Cards never move while the user is tapping; the new order applies on the next open. |
 | Shortcuts | `manifest.webmanifest` → `shortcuts`: Cafer Telefon, Vakit, Notlar with `url: ./?ac=<name>` (URL-encoded) and 256 px PNG icons. `telefon.svg` was rendered to `simgeler/telefon-256.png` because shortcut icons should be PNG. |
 | Shortcut landing | `kisayol()` reads `?ac=`, finds the card by `h3` text, adds 1 to its usage counter, scrolls it to center after 300 ms, adds `.parla` (turquoise glow, `@keyframes parla`, 2 × 1 s), removes it after 2.1 s, then clears the query with `history.replaceState`. |
+| Reset order (cache v8) | `#sira-sifirla` button at the page bottom above `<footer>` (turquoise outline, 56 px, full width up to 420 px). Disabled while every card has `dataset.kul == 0` (`siraDurum()`, called on load, card tap, shortcut, reset). Opens `#onay-sira` (same `.onay` styles, turquoise "Evet, sıfırla", note that WhatsApp counters stay). Yes = remove all `vitrin-kul:*` keys, set `dataset.kul = 0`, re-append cards per group by `dataset.sira` (default order index: date desc, list order), vibrate 40 ms. |
 | Limits | Apps have no URLs yet, so shortcuts open the showcase card, not the app. Manifest shortcuts work on Android only (not iOS); the page may need to be re-added to the home screen to pick them up. The shortcut list is static and does not follow usage. |
 
 ## Rules to keep
@@ -36,8 +37,9 @@ Static, server-less showcase page: `index.html` (data + CSS + JS in one file), `
 2. Keep every `whatsapp:` value at `0` in the repo; test counts must never be committed.
 3. Do not nest a `div` inside `.ozet > div` without resetting card styles (`.ozet div` is a card selector) — see `.ozet .okunmamis-bilgi`.
 4. Mobile first: large text, 52 px+ tap targets, check 390 px width in light and dark themes.
-5. Render SVG icons to PNG by opening the SVG file itself with `page.goto('file://…svg')`; a `setContent` page cannot load local `file://` images and produces a blank PNG.
-6. The icon badge only works for the page **installed to the home screen** (Android Chrome; iOS 16.4+ with notification permission). It cannot be verified in a headless browser — mock `navigator.setAppBadge` and tell the user to check on a real phone.
+5. Card taps, the shortcut handler and the reset must all read/write the usage count through `el.dataset.kul`; never keep a separate closure copy, or counts drift (a shortcut +1 was lost this way).
+6. Render SVG icons to PNG by opening the SVG file itself with `page.goto('file://…svg')`; a `setContent` page cannot load local `file://` images and produces a blank PNG.
+7. The icon badge only works for the page **installed to the home screen** (Android Chrome; iOS 16.4+ with notification permission). It cannot be verified in a headless browser — mock `navigator.setAppBadge` and tell the user to check on a real phone.
 
 ## Testing recipe (Playwright, local `python3 -m http.server`)
 
@@ -53,6 +55,5 @@ Plan in 5 points → wait for approval → one step at a time, ask "Shall I cont
 ## Possible next steps
 
 1. Add real app URLs so shortcuts and an "Aç" button open the apps directly.
-2. A "reset usage order" option that clears all `vitrin-kul:*` keys.
-3. A daily summary card ("Bugün en çok: …") at the top.
-4. Export/import counters as a file to move them between devices.
+2. A daily summary card ("Bugün en çok: …") at the top.
+3. Export/import counters as a file to move them between devices.
