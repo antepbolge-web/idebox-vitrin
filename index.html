@@ -698,9 +698,28 @@
     } catch (e) {}
     return veri;
   }
-  function disaAktar() {
-    const ad = "vitrin-sayaclar-" + bugunTarih() + ".json";
-    const blob = new Blob([JSON.stringify(sayacVerisi(), null, 2)], { type: "application/json" });
+  // Telefonda paylaşma menüsü açılır (WhatsApp, Drive, e-posta). Android Chrome .json dosyasını
+  // paylaşmaya izin vermediği için paylaşılan dosya .txt uzantılıdır; içi yine aynı JSON'dur.
+  // Paylaşma yoksa (bilgisayar) ya da hata olursa dosya .json olarak indirilir.
+  async function disaAktar() {
+    const metin = JSON.stringify(sayacVerisi(), null, 2);
+    const kok = "vitrin-sayaclar-" + bugunTarih();
+    const telefon = window.matchMedia && matchMedia("(pointer: coarse)").matches;
+    if (telefon && navigator.share && navigator.canShare && typeof File === "function") {
+      try {
+        const dosya = new File([metin], kok + ".txt", { type: "text/plain" });
+        if (navigator.canShare({ files: [dosya] })) {
+          await navigator.share({ files: [dosya], title: "Vitrin sayaçları" });
+          return;
+        }
+      } catch (e) {
+        if (e && e.name === "AbortError") return; // kullanıcı paylaşmaktan vazgeçti
+      }
+    }
+    indir(metin, kok + ".json");
+  }
+  function indir(metin, ad) {
+    const blob = new Blob([metin], { type: "application/json" });
     const a = document.createElement("a");
     a.href = URL.createObjectURL(blob);
     a.download = ad;
