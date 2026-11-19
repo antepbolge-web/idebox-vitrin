@@ -420,6 +420,16 @@
     simge.addEventListener("keydown", e => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); e.stopPropagation(); artir(); } });
     simge.addEventListener("contextmenu", e => e.preventDefault());
     rozetYaz();
+    // Kullanım sayacı: karta her dokunuş bu telefonda sessizce sayılır (simgeye dokunmak sayılmaz).
+    const KUL = "vitrin-kul:" + u.ad;
+    let kul = 0;
+    try { kul = Math.max(0, Math.floor(Number(localStorage.getItem(KUL)) || 0)); } catch (e) {}
+    el.dataset.kul = kul;
+    el.addEventListener("click", () => {
+      kul += 1;
+      el.dataset.kul = kul;
+      try { localStorage.setItem(KUL, String(kul)); } catch (e) {}
+    });
     el.dataset.ara = [u.ad, u.aciklama, u.yenilik || "", u.yer].join(" ").toLocaleLowerCase("tr");
     if (yeniMi(u.tarih)) {
       const y = document.createElement("span");
