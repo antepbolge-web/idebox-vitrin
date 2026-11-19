@@ -187,6 +187,9 @@
   /* Belirme animasyonu */
   @keyframes belir { from { opacity: 0; transform: translateY(12px); } to { opacity: 1; transform: none; } }
   .kart { animation: belir .45s ease both; }
+  /* Kısayolla gelinen kart 2 saniye parlar */
+  @keyframes parla { 0%, 100% { box-shadow: var(--golge); } 50% { box-shadow: 0 0 0 4px var(--turkuaz), 0 0 24px var(--turkuaz); } }
+  .kart.parla { animation: parla 1s ease 2; }
   @media (prefers-reduced-motion: reduce) { .kart { animation: none; } }
 
   /* Ekran görüntüsü penceresi */
@@ -420,6 +423,16 @@
     simge.addEventListener("keydown", e => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); e.stopPropagation(); artir(); } });
     simge.addEventListener("contextmenu", e => e.preventDefault());
     rozetYaz();
+    // Kullanım sayacı: karta her dokunuş bu telefonda sessizce sayılır (simgeye dokunmak sayılmaz).
+    const KUL = "vitrin-kul:" + u.ad;
+    let kul = 0;
+    try { kul = Math.max(0, Math.floor(Number(localStorage.getItem(KUL)) || 0)); } catch (e) {}
+    el.dataset.kul = kul;
+    el.addEventListener("click", () => {
+      kul += 1;
+      el.dataset.kul = kul;
+      try { localStorage.setItem(KUL, String(kul)); } catch (e) {}
+    });
     el.dataset.ara = [u.ad, u.aciklama, u.yenilik || "", u.yer].join(" ").toLocaleLowerCase("tr");
     if (yeniMi(u.tarih)) {
       const y = document.createElement("span");
@@ -454,14 +467,37 @@
   perde.addEventListener("click", e => { if (e.target === perde || e.target.id === "kaydir") perdeKapat(); });
   document.addEventListener("keydown", e => { if (e.key === "Escape") perdeKapat(); });
 
-  // En yeni güncelleme en üstte; tarih aynıysa listedeki sıra korunur.
-  [...UYGULAMALAR].sort((a, b) => b.tarih.localeCompare(a.tarih)).forEach((u, i) => {
+  // Akıllı sıralama: en çok dokunulan uygulama grubunun en üstünde.
+  // Kullanım eşitse en yeni güncelleme önde; o da eşitse listedeki sıra korunur.
+  // Sıra yalnızca vitrin açılırken kurulur; dokunurken kartlar yer değiştirmez.
+  function kullanim(u) {
+    try { return Math.max(0, Math.floor(Number(localStorage.getItem("vitrin-kul:" + u.ad)) || 0)); } catch (e) { return 0; }
+  }
+  [...UYGULAMALAR].sort((a, b) => (kullanim(b) - kullanim(a)) || b.tarih.localeCompare(a.tarih)).forEach((u, i) => {
     const kart = kartYap(u);
     kart.style.animationDelay = (i * 40) + "ms";
     document.getElementById(u.grup).appendChild(kart);
   });
 
   toplamYaz();
+
+  // Ana ekran kısayolu (?ac=Uygulama adı): karta kaydır, 2 saniye parlat, kullanım olarak say.
+  (function kisayol() {
+    let ad = null;
+    try { ad = new URLSearchParams(location.search).get("ac"); } catch (e) {}
+    if (!ad) return;
+    const kart = [...document.querySelectorAll(".kart")].find(k => k.querySelector("h3").textContent === ad);
+    if (!kart) return;
+    const n = (Number(kart.dataset.kul) || 0) + 1;
+    kart.dataset.kul = n;
+    try { localStorage.setItem("vitrin-kul:" + ad, String(n)); } catch (e) {}
+    setTimeout(() => {
+      kart.scrollIntoView({ behavior: "smooth", block: "center" });
+      kart.classList.remove("parla"); void kart.offsetWidth; kart.classList.add("parla");
+      setTimeout(() => kart.classList.remove("parla"), 2100);
+    }, 300);
+    try { history.replaceState(null, "", location.pathname); } catch (e) {}
+  })();
 
   // iPhone'da ana ekran simgesi rozeti için bildirim izni gerekir; düğme yalnızca o zaman görünür.
   const izinDugme = document.getElementById("rozet-izin");

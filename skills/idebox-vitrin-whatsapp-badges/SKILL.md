@@ -1,6 +1,6 @@
 ---
 name: idebox-vitrin-whatsapp-badges
-description: Add or modify manual WhatsApp unread-count badges on the idebox-vitrin static showcase page (app cards, total box, reset-all, home-screen icon badge). Use when working on notification counters/badges in the idebox-vitrin repo (index.html + sw.js).
+description: Add or modify manual WhatsApp unread-count badges, the per-app usage counter, smart sorting, and home-screen shortcuts on the idebox-vitrin static showcase page (app cards, total box, reset-all, home-screen icon badge, manifest shortcuts). Use when working on counters, badges, card order, or shortcuts in the idebox-vitrin repo (index.html + sw.js + manifest.webmanifest).
 ---
 
 # idebox-vitrin WhatsApp badges
@@ -20,13 +20,24 @@ Static, server-less showcase page: `index.html` (data + CSS + JS in one file), `
 | Home-screen icon badge | `toplamYaz()` calls `navigator.setAppBadge(total)` / `clearAppBadge()` only when the total changed (`simgeSon`); errors swallowed. |
 | iPhone permission button | `#rozet-izin` ("Simge rozetini aç") shown only on iOS + `setAppBadge` supported + `Notification.permission === "default"`; click calls `Notification.requestPermission()` then re-sends the total. |
 
+## Usage counter, smart sorting, home-screen shortcuts (added in cache v7)
+
+| Feature | How it works |
+|---|---|
+| Usage counter | Every tap on a card body (not the icon, which calls `stopPropagation`) adds 1 to `localStorage` key `vitrin-kul:<app name>`; mirrored in `el.dataset.kul`. Silent, no UI. |
+| Smart sorting | On page load only, `kullanim(u)` reads the counter; sort = usage desc, then `tarih` desc, then list order (stable sort). Cards never move while the user is tapping; the new order applies on the next open. |
+| Shortcuts | `manifest.webmanifest` → `shortcuts`: Cafer Telefon, Vakit, Notlar with `url: ./?ac=<name>` (URL-encoded) and 256 px PNG icons. `telefon.svg` was rendered to `simgeler/telefon-256.png` because shortcut icons should be PNG. |
+| Shortcut landing | `kisayol()` reads `?ac=`, finds the card by `h3` text, adds 1 to its usage counter, scrolls it to center after 300 ms, adds `.parla` (turquoise glow, `@keyframes parla`, 2 × 1 s), removes it after 2.1 s, then clears the query with `history.replaceState`. |
+| Limits | Apps have no URLs yet, so shortcuts open the showcase card, not the app. Manifest shortcuts work on Android only (not iOS); the page may need to be re-added to the home screen to pick them up. The shortcut list is static and does not follow usage. |
+
 ## Rules to keep
 
 1. Bump `SAKLA` in `sw.js` (`vitrin-vN`) on every user-visible change, otherwise phones keep the old page.
 2. Keep every `whatsapp:` value at `0` in the repo; test counts must never be committed.
 3. Do not nest a `div` inside `.ozet > div` without resetting card styles (`.ozet div` is a card selector) — see `.ozet .okunmamis-bilgi`.
 4. Mobile first: large text, 52 px+ tap targets, check 390 px width in light and dark themes.
-5. The icon badge only works for the page **installed to the home screen** (Android Chrome; iOS 16.4+ with notification permission). It cannot be verified in a headless browser — mock `navigator.setAppBadge` and tell the user to check on a real phone.
+5. Render SVG icons to PNG by opening the SVG file itself with `page.goto('file://…svg')`; a `setContent` page cannot load local `file://` images and produces a blank PNG.
+6. The icon badge only works for the page **installed to the home screen** (Android Chrome; iOS 16.4+ with notification permission). It cannot be verified in a headless browser — mock `navigator.setAppBadge` and tell the user to check on a real phone.
 
 ## Testing recipe (Playwright, local `python3 -m http.server`)
 
@@ -41,6 +52,7 @@ Plan in 5 points → wait for approval → one step at a time, ask "Shall I cont
 
 ## Possible next steps
 
-1. Fit the three summary boxes on one row on phones.
-2. Export/import counters as a file to move them between devices.
-3. Total box tap opens WhatsApp.
+1. Add real app URLs so shortcuts and an "Aç" button open the apps directly.
+2. A "reset usage order" option that clears all `vitrin-kul:*` keys.
+3. A daily summary card ("Bugün en çok: …") at the top.
+4. Export/import counters as a file to move them between devices.
