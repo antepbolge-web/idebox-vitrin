@@ -129,7 +129,7 @@
   .sifirla:active:not(:disabled) { background: #e53935; color: #fff; }
   .sifirla:disabled { opacity: .35; cursor: default; }
   /* Sayfa altındaki "Sıralamayı sıfırla": seyrek kullanılır, sakin görünür */
-  .sira-sifirla-alan { margin-top: 40px; display: flex; justify-content: center; }
+  .sira-sifirla-alan { margin-top: 40px; display: flex; flex-direction: column; align-items: center; gap: 12px; }
   .sira-sifirla {
     min-height: 56px; width: 100%; max-width: 420px; padding: 0 20px; border-radius: 16px;
     border: 2px solid var(--turkuaz); background: transparent; color: var(--turkuaz);
@@ -156,6 +156,7 @@
     border: 2px solid var(--ayrac); background: var(--kart); color: var(--yazi);
   }
   .onay-dugmeler #onay-evet { background: #e53935; border-color: #e53935; color: #fff; }
+  .onay-dugmeler #ice-evet { background: var(--turkuaz); border-color: var(--turkuaz); color: #fff; }
   .onay-dugmeler #sira-evet { background: var(--turkuaz); border-color: var(--turkuaz); color: #fff; }
   .onay-kutu .onay-not { margin: -8px 0 20px; font-size: 18px; font-weight: 400; color: var(--soluk); }
 
@@ -312,6 +313,9 @@
   <p class="bos gizli" id="bos">Aramaya uyan uygulama yok.</p>
 
   <div class="sira-sifirla-alan">
+    <button id="disa-aktar" class="sira-sifirla" type="button">⬆ Sayaçları dışa aktar</button>
+    <button id="ice-aktar" class="sira-sifirla" type="button">⬇ Sayaçları içe aktar</button>
+    <input id="ice-dosya" type="file" accept=".json,.txt,application/json,text/plain" hidden>
     <button id="sira-sifirla" class="sira-sifirla" type="button" disabled>↺ Sıralamayı sıfırla</button>
   </div>
 
@@ -324,6 +328,17 @@
     <div class="onay-dugmeler">
       <button type="button" id="onay-vazgec">Vazgeç</button>
       <button type="button" id="onay-evet">Evet, sıfırla</button>
+    </div>
+  </div>
+</div>
+
+<div class="onay gizli" id="onay-ice" role="alertdialog" aria-modal="true" aria-labelledby="ice-soru">
+  <div class="onay-kutu">
+    <p id="ice-soru"></p>
+    <p class="onay-not" id="ice-not"></p>
+    <div class="onay-dugmeler">
+      <button type="button" id="ice-vazgec">Vazgeç</button>
+      <button type="button" id="ice-evet">Evet, değiştir</button>
     </div>
   </div>
 </div>
@@ -683,6 +698,130 @@
   });
   onay.addEventListener("click", e => { if (e.target === onay) onayKapat(); });
   document.addEventListener("keydown", e => { if (e.key === "Escape" && !onay.classList.contains("gizli")) onayKapat(); });
+
+  // Sayaçları dışa aktar: WhatsApp, kullanım ve son 7 gün tek bir JSON dosyasına yazılır.
+  function sayacVerisi() {
+    const veri = { uygulama: "ideabox-vitrin", bicim: 1, tarih: new Date().toISOString(), whatsapp: {}, kullanim: {}, gunluk: gunOku() };
+    try {
+      for (let i = 0; i < localStorage.length; i++) {
+        const k = localStorage.key(i);
+        const n = Math.max(0, Math.floor(Number(localStorage.getItem(k)) || 0));
+        if (k.startsWith("vitrin-wa:") && n > 0) veri.whatsapp[k.slice(10)] = n;
+        else if (k.startsWith("vitrin-kul:") && n > 0) veri.kullanim[k.slice(11)] = n;
+      }
+    } catch (e) {}
+    return veri;
+  }
+  // Telefonda paylaşma menüsü açılır (WhatsApp, Drive, e-posta). Android Chrome .json dosyasını
+  // paylaşmaya izin vermediği için paylaşılan dosya .txt uzantılıdır; içi yine aynı JSON'dur.
+  // Paylaşma yoksa (bilgisayar) ya da hata olursa dosya .json olarak indirilir.
+  async function disaAktar() {
+    const metin = JSON.stringify(sayacVerisi(), null, 2);
+    const kok = "vitrin-sayaclar-" + bugunTarih();
+    const telefon = window.matchMedia && matchMedia("(pointer: coarse)").matches;
+    if (telefon && navigator.share && navigator.canShare && typeof File === "function") {
+      try {
+        const dosya = new File([metin], kok + ".txt", { type: "text/plain" });
+        if (navigator.canShare({ files: [dosya] })) {
+          await navigator.share({ files: [dosya], title: "Vitrin sayaçları" });
+          return;
+        }
+      } catch (e) {
+        if (e && e.name === "AbortError") return; // kullanıcı paylaşmaktan vazgeçti
+      }
+    }
+    indir(metin, kok + ".json");
+  }
+  function indir(metin, ad) {
+    const blob = new Blob([metin], { type: "application/json" });
+    const a = document.createElement("a");
+    a.href = URL.createObjectURL(blob);
+    a.download = ad;
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    setTimeout(() => URL.revokeObjectURL(a.href), 1000);
+  }
+  document.getElementById("disa-aktar").addEventListener("click", disaAktar);
+
+  // Sayaçları içe aktar: dosya okunur, denetlenir, onaydan sonra bu cihazdaki sayılar dosyadakilerle DEĞİŞTİRİLİR.
+  // Yalnızca listedeki uygulama adları ve 0 ile 1.000.000 arası tam sayılar kabul edilir; gerisi yok sayılır.
+  const onayIce = document.getElementById("onay-ice");
+  const iceDosya = document.getElementById("ice-dosya");
+  let iceBekleyen = null;
+  function sayi(v) { const n = Math.floor(Number(v)); return Number.isFinite(n) && n > 0 ? Math.min(n, 1000000) : 0; }
+  function iceDenetle(metin) {
+    let v;
+    try { v = JSON.parse(metin); } catch (e) { return null; }
+    if (!v || typeof v !== "object" || v.uygulama !== "ideabox-vitrin") return null;
+    const adlar = new Set(UYGULAMALAR.map(u => u.ad));
+    const temiz = { whatsapp: {}, kullanim: {}, gunluk: {}, tarih: typeof v.tarih === "string" ? v.tarih : "" };
+    ["whatsapp", "kullanim"].forEach(t => {
+      const k = v[t] && typeof v[t] === "object" ? v[t] : {};
+      Object.keys(k).forEach(ad => { if (adlar.has(ad) && sayi(k[ad])) temiz[t][ad] = sayi(k[ad]); });
+    });
+    const sinir = new Date(); sinir.setDate(sinir.getDate() - 6);
+    const enEski = bugunTarih(sinir);
+    const g = v.gunluk && typeof v.gunluk === "object" ? v.gunluk : {};
+    Object.keys(g).forEach(t => {
+      if (!/^\d{4}-\d{2}-\d{2}$/.test(t) || t < enEski || !g[t] || typeof g[t] !== "object") return;
+      const gun = {};
+      Object.keys(g[t]).forEach(ad => { if (adlar.has(ad) && sayi(g[t][ad])) gun[ad] = sayi(g[t][ad]); });
+      if (Object.keys(gun).length) temiz.gunluk[t] = gun;
+    });
+    return temiz;
+  }
+  function iceAc(soru, not, evet) {
+    document.getElementById("ice-soru").textContent = soru;
+    document.getElementById("ice-not").textContent = not;
+    document.getElementById("ice-evet").classList.toggle("gizli", !evet);
+    document.getElementById("ice-vazgec").textContent = evet ? "Vazgeç" : "Tamam";
+    onayIce.classList.remove("gizli");
+    document.getElementById("ice-vazgec").focus();
+  }
+  function iceKapat() { onayIce.classList.add("gizli"); iceBekleyen = null; iceDosya.value = ""; }
+  document.getElementById("ice-aktar").addEventListener("click", () => iceDosya.click());
+  iceDosya.addEventListener("change", () => {
+    const f = iceDosya.files && iceDosya.files[0];
+    if (!f) return;
+    if (f.size > 1000000) { iceAc("Bu dosya okunamadı.", "Dosya çok büyük. Vitrinden dışa aktarılan dosyayı seçin.", false); return; }
+    const okuyucu = new FileReader();
+    okuyucu.onload = () => {
+      const veri = iceDenetle(String(okuyucu.result || ""));
+      if (!veri) { iceAc("Bu dosya okunamadı.", "Vitrinden dışa aktarılan bir sayaç dosyası seçin. Hiçbir şey değişmedi.", false); return; }
+      iceBekleyen = veri;
+      const wa = Object.values(veri.whatsapp).reduce((t, n) => t + n, 0);
+      const kul = Object.values(veri.kullanim).reduce((t, n) => t + n, 0);
+      const tarih = veri.tarih && !isNaN(new Date(veri.tarih)) ? tarihYaz(bugunTarih(new Date(veri.tarih))) : "bilinmiyor";
+      iceAc("Bu cihazdaki sayılar dosyadakilerle değiştirilsin mi?",
+        "Dosya tarihi: " + tarih + " · " + wa + " okunmamış mesaj · " + kul + " dokunuş", true);
+    };
+    okuyucu.onerror = () => iceAc("Bu dosya okunamadı.", "Dosya açılamadı. Hiçbir şey değişmedi.", false);
+    okuyucu.readAsText(f);
+  });
+  document.getElementById("ice-vazgec").addEventListener("click", iceKapat);
+  onayIce.addEventListener("click", e => { if (e.target === onayIce) iceKapat(); });
+  document.addEventListener("keydown", e => { if (e.key === "Escape" && !onayIce.classList.contains("gizli")) iceKapat(); });
+  document.getElementById("ice-evet").addEventListener("click", () => {
+    const v = iceBekleyen;
+    if (!v) return iceKapat();
+    try {
+      const silinecek = [];
+      for (let i = 0; i < localStorage.length; i++) {
+        const k = localStorage.key(i);
+        if (k.startsWith("vitrin-wa:") || k.startsWith("vitrin-kul:")) silinecek.push(k);
+      }
+      silinecek.forEach(k => localStorage.removeItem(k));
+      Object.keys(v.whatsapp).forEach(ad => localStorage.setItem("vitrin-wa:" + ad, String(v.whatsapp[ad])));
+      Object.keys(v.kullanim).forEach(ad => localStorage.setItem("vitrin-kul:" + ad, String(v.kullanim[ad])));
+      localStorage.setItem(GUN_ANAHTAR, JSON.stringify(v.gunluk));
+    } catch (e) {
+      iceAc("Sayılar kaydedilemedi.", "Telefonun depolama alanına yazılamadı.", false);
+      return;
+    }
+    if (navigator.vibrate) navigator.vibrate(40);
+    location.reload(); // sıralama, rozetler, özet ve grafik yeni sayılarla baştan kurulur
+  });
 
   // "Sıralamayı sıfırla": kullanım kaydı yoksa düğme pasif; önce onay sorulur.
   function siraDurum() {
