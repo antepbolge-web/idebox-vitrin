@@ -29,6 +29,8 @@ Static, server-less showcase page: `index.html` (data + CSS + JS in one file), `
 | Shortcuts | `manifest.webmanifest` → `shortcuts`: Cafer Telefon, Vakit, Notlar with `url: ./?ac=<name>` (URL-encoded) and 256 px PNG icons. `telefon.svg` was rendered to `simgeler/telefon-256.png` because shortcut icons should be PNG. |
 | Shortcut landing | `kisayol()` reads `?ac=`, finds the card by `h3` text, adds 1 to its usage counter, scrolls it to center after 300 ms, adds `.parla` (turquoise glow, `@keyframes parla`, 2 × 1 s), removes it after 2.1 s, then clears the query with `history.replaceState`. |
 | Reset order (cache v8) | `#sira-sifirla` button at the page bottom above `<footer>` (turquoise outline, 56 px, full width up to 420 px). Disabled while every card has `dataset.kul == 0` (`siraDurum()`, called on load, card tap, shortcut, reset). Opens `#onay-sira` (same `.onay` styles, turquoise "Evet, sıfırla", note that WhatsApp counters stay). Yes = remove all `vitrin-kul:*` keys, set `dataset.kul = 0`, re-append cards per group by `dataset.sira` (default order index: date desc, list order), vibrate 40 ms. |
+| Daily log (cache v9) | `localStorage` key `vitrin-gun` = `{"YYYY-MM-DD": {"<app>": n}}`, **local** date via `bugunTarih()`. `gunKaydet(ad)` is called from card taps and the shortcut handler (not WhatsApp icon taps); keeps only the last 7 days; calls `ozetYaz()`. |
+| Daily summary card | `#gunluk` button below `.ozet`, above `#ara` (outside `.ozet` so `.ozet div` card styles do not apply). Shows "Bugün en çok: <b>App (n)</b>" + "Bugün toplam X dokunuş · Y uygulama", or "Bugün henüz bir uygulama açılmadı." when empty. Refreshes live, every 60 s and on `visibilitychange` so it resets after midnight. Tap = clear search/filter if the card is hidden, then `karteGit(kart)` (shared scroll + 2 s `.parla` glow, also used by shortcuts). "Sıralamayı sıfırla" also removes `vitrin-gun`. |
 | Limits | Apps have no URLs yet, so shortcuts open the showcase card, not the app. Manifest shortcuts work on Android only (not iOS); the page may need to be re-added to the home screen to pick them up. The shortcut list is static and does not follow usage. |
 
 ## Rules to keep
@@ -46,6 +48,9 @@ Static, server-less showcase page: `index.html` (data + CSS + JS in one file), `
 - Tap icons with `tap()`, reload, assert `#say-wa` text and visible `.rozet` count.
 - Long press: `mouse.down()`, wait 700 ms, `mouse.up()`; scroll the target into view first (reload restores scroll, which can put the icon off-screen).
 - Mock iOS via user agent + stubbed `Notification`; Android via Chrome user agent.
+- After `reload()` the browser restores the old scroll position: wait, then `scrollTo(0,0)` before a top-of-page screenshot.
+- Cards with screenshots (`ekran:`) open the `#perde` dialog on tap, which blocks further taps; use cards without screenshots for repeated-tap tests.
+- Test the day change with `page.clock.install({ time: 23:58 })` then `clock.runFor(3 min)`.
 - Screenshot at 390×844, `deviceScaleFactor: 2`, both `colorScheme` values.
 
 ## Workflow used (user preferences)
@@ -55,5 +60,5 @@ Plan in 5 points → wait for approval → one step at a time, ask "Shall I cont
 ## Possible next steps
 
 1. Add real app URLs so shortcuts and an "Aç" button open the apps directly.
-2. A daily summary card ("Bugün en çok: …") at the top.
-3. Export/import counters as a file to move them between devices.
+2. Export/import counters as a file to move them between devices.
+3. A 7-day mini chart in the summary card using the existing `vitrin-gun` data.
