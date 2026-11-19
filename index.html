@@ -678,12 +678,15 @@
     karteGit(kart);
   });
 
-  // Telefona kurulu uygulamayı açma (Android Chrome "intent" bağlantısı).
-  // Uygulama açılamazsa Chrome vitrine ?acilamadi=Ad ile döner ve bir uyarı gösterilir.
+  // Telefona kurulu uygulamayı açma: Chrome, uygulamaların kendisini web sayfasından açmaya izin vermez
+  // (BROWSABLE değiller). Bu yüzden Cafer Başlatıcı'daki köprü çağrılır: cafer://ac?paket=...
+  // Köprü yalnızca tr.cafer.* uygulamalarını açar. Başlatıcı eski sürümse (köprü yoksa)
+  // Chrome vitrine ?acilamadi=Ad ile döner ve bir uyarı gösterilir.
+  const KOPRU_PAKET = "tr.cafer.baslatici";
   function uygulamaAc(u) {
     const geri = location.origin + location.pathname + "?acilamadi=" + encodeURIComponent(u.ad);
-    location.href = "intent:#Intent;action=android.intent.action.MAIN;category=android.intent.category.LAUNCHER;package="
-      + u.paket + ";S.browser_fallback_url=" + encodeURIComponent(geri) + ";end";
+    location.href = "intent://ac?paket=" + encodeURIComponent(u.paket) + "#Intent;scheme=cafer;package=" + KOPRU_PAKET
+      + ";S.browser_fallback_url=" + encodeURIComponent(geri) + ";end";
   }
 
   // Ana ekran kısayolu (?ac=Uygulama adı): karta kaydır, 2 saniye parlat, kullanım olarak say.
@@ -859,7 +862,7 @@
     try { ad = new URLSearchParams(location.search).get("acilamadi"); } catch (e) {}
     if (!ad) return;
     try { history.replaceState(null, "", location.pathname); } catch (e) {}
-    iceAc("Uygulama açılamadı.", ad + " bu telefonda kurulu mu? Kuruluysa bu bilgiyi Claude'a iletin; uygulamaya küçük bir ekleme gerekiyor olabilir.", false);
+    iceAc("Uygulama açılamadı.", ad + " açılamadı. Cafer Başlatıcı'nın son sürümü (0.3.0-cafer.31 ya da sonrası) kurulu olmalı.", false);
   })();
 
   // "Sıralamayı sıfırla": kullanım kaydı yoksa düğme pasif; önce onay sorulur.
