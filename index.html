@@ -95,6 +95,17 @@
   .ozet span { color: var(--soluk); font-size: 17px; }
   .ozet .okunmamis strong { color: #e53935; }
   .ozet .okunmamis { display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap; }
+  /* Günlük özet kartı */
+  .gunluk {
+    display: flex; align-items: center; gap: 14px; width: 100%; margin-top: 12px; padding: 14px 18px;
+    background: var(--kart); border: 1px solid var(--ayrac); border-left: 6px solid var(--turkuaz);
+    border-radius: 18px; box-shadow: var(--golge); color: inherit; font: inherit; text-align: left;
+  }
+  .gunluk .gunluk-simge { font-size: 30px; line-height: 1; flex: 0 0 auto; }
+  .gunluk .gunluk-metin { min-width: 0; }
+  .gunluk .gunluk-bas { display: block; font-size: 20px; font-weight: 700; line-height: 1.3; }
+  .gunluk .gunluk-bas b { color: var(--turkuaz); }
+  .gunluk .gunluk-alt { display: block; margin-top: 2px; font-size: 17px; color: var(--soluk); }
   .ozet .okunmamis-bilgi { flex: 0 1 auto; min-width: 0; background: none; border: 0; border-radius: 0; padding: 0; box-shadow: none; }
   .sifirla {
     min-height: 52px; padding: 0 20px; border-radius: 14px;
@@ -263,6 +274,10 @@
         <button id="rozet-izin" class="izin gizli" type="button">Simge rozetini aç</button>
       </div>
     </div>
+    <button id="gunluk" class="gunluk" type="button" aria-live="polite">
+      <span class="gunluk-simge" aria-hidden="true">☀️</span>
+      <span class="gunluk-metin"><span class="gunluk-bas" id="gunluk-bas">Bugün</span><span class="gunluk-alt" id="gunluk-alt"></span></span>
+    </button>
     <input id="ara" class="ara" type="search" placeholder="Ara: ad ya da özellik" aria-label="Uygulama ara" autocomplete="off">
     <div class="suzgec" role="group" aria-label="Süzgeç">
       <button data-s="hepsi" aria-pressed="true">Tümü</button>
@@ -520,6 +535,26 @@
     try { localStorage.setItem(GUN_ANAHTAR, JSON.stringify(kayit)); } catch (e) {}
   }
 
+  // Günlük özet kartı: bugünün en çok kullanılan uygulaması, toplam dokunuş ve uygulama sayısı.
+  function ozetYaz() {
+    const gun = gunOku()[bugunTarih()] || {};
+    const adlar = Object.keys(gun).filter(a => Number(gun[a]) > 0);
+    const bas = document.getElementById("gunluk-bas"), alt = document.getElementById("gunluk-alt");
+    const kart = document.getElementById("gunluk");
+    if (!adlar.length) {
+      bas.textContent = "Bugün henüz bir uygulama açılmadı.";
+      alt.textContent = "Bir karta dokununca burada görünür.";
+      kart.dataset.en = "";
+      return;
+    }
+    const en = adlar.reduce((a, b) => (Number(gun[b]) > Number(gun[a]) ? b : a));
+    const toplam = adlar.reduce((t, a) => t + Number(gun[a]), 0);
+    bas.innerHTML = "Bugün en çok: <b></b>";
+    bas.querySelector("b").textContent = en + " (" + gun[en] + ")";
+    alt.textContent = "Bugün toplam " + toplam + " dokunuş · " + adlar.length + " uygulama";
+    kart.dataset.en = en;
+  }
+
   // Akıllı sıralama: en çok dokunulan uygulama grubunun en üstünde.
   // Kullanım eşitse en yeni güncelleme önde; o da eşitse listedeki sıra korunur.
   // Sıra yalnızca vitrin açılırken kurulur; dokunurken kartlar yer değiştirmez.
@@ -536,6 +571,7 @@
   });
 
   toplamYaz();
+  ozetYaz();
 
   // Ana ekran kısayolu (?ac=Uygulama adı): karta kaydır, 2 saniye parlat, kullanım olarak say.
   (function kisayol() {
