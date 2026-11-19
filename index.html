@@ -573,6 +573,9 @@
 
   toplamYaz();
   ozetYaz();
+  // Gece yarısı gün değişince özet yenilensin: dakikada bir ve vitrine geri dönüldüğünde.
+  setInterval(ozetYaz, 60000);
+  document.addEventListener("visibilitychange", () => { if (!document.hidden) ozetYaz(); });
 
   // Karta kaydır ve 2 saniye parlat (kısayol ve günlük özet kartı kullanır).
   function karteGit(kart) {
