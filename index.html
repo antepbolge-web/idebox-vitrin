@@ -183,6 +183,12 @@
   .simge.sayac { cursor: pointer; touch-action: manipulation; -webkit-user-select: none; user-select: none; -webkit-touch-callout: none; }
   .simge.sayac:active { transform: scale(.92); }
   .kart.tiklanir { cursor: pointer; }
+  /* "Aç" düğmesi: telefona kurulu uygulamayı açar (yalnızca Android) */
+  .ac-dugme {
+    display: block; width: 100%; min-height: 52px; margin-top: 12px; border-radius: 14px;
+    border: 0; background: var(--turkuaz); color: #fff; font: inherit; font-size: 18px; font-weight: 700; cursor: pointer;
+  }
+  .ac-dugme:active { filter: brightness(.9); }
   .kart.tiklanir:active { transform: scale(.98); }
   .etiket.foto { background: transparent; border: 1px solid var(--turkuaz); color: var(--turkuaz); }
 
@@ -363,8 +369,9 @@
   // Bilgiler apps/apk/APK.md ile aynı tutulur (2026-11-04).
   // whatsapp: okunmamış WhatsApp mesaj sayısı (elle yazılır; 0 ise rozet görünmez, 99'dan büyükse "99+").
   // simge: simgeler/ altındaki dosya; ekran: ekranlar/ altındaki görüntüler (ör. ["alarm-1.jpg"]).
+  const ANDROID = /Android/i.test(navigator.userAgent);
   const UYGULAMALAR = [
-    { ad: "Cafer Telefon", simge: "telefon.svg", surum: "1.20.0", tarih: "2026-11-04", whatsapp: 0, grup: "ana", yer: "Telefon",
+    { ad: "Cafer Telefon", paket: "tr.cafer.telefon", simge: "telefon.svg", surum: "1.20.0", tarih: "2026-11-04", whatsapp: 0, grup: "ana", yer: "Telefon",
       aciklama: "iOS tarzı arama ve rehber: gelen arama ekranı, son aramalar, favoriler, numara engelleme.", yenilik: "Papirüs teması: kâğıt tonlarında 5. görünüm" },
     { ad: "Vakit", simge: "vakit.png", surum: "1.1.2", tarih: "2026-11-04", whatsapp: 0, grup: "ana", yer: "Telefon",
       aciklama: "Namaz vakitleri, takvim ve Kur'an-ı Kerim.", yenilik: "Yeni simge: modern, sade, iOS tarzı" },
@@ -501,13 +508,28 @@
     let kul = 0;
     try { kul = Math.max(0, Math.floor(Number(localStorage.getItem(KUL)) || 0)); } catch (e) {}
     el.dataset.kul = kul;
-    el.addEventListener("click", () => {
+    function kullanimSay() {
       const n = (Number(el.dataset.kul) || 0) + 1;
       el.dataset.kul = n;
       try { localStorage.setItem(KUL, String(n)); } catch (e) {}
       gunKaydet(u.ad);
       siraDurum();
-    });
+    }
+    el.addEventListener("click", kullanimSay);
+    // "Aç" düğmesi: paket adı olan uygulamalarda, yalnızca Android'de görünür.
+    if (u.paket && ANDROID) {
+      const ac = document.createElement("button");
+      ac.type = "button";
+      ac.className = "ac-dugme";
+      ac.textContent = "▶ Aç";
+      ac.setAttribute("aria-label", u.ad + " uygulamasını aç");
+      ac.addEventListener("click", e => {
+        e.stopPropagation(); // ekran görüntüsü penceresi açılmasın
+        kullanimSay();
+        uygulamaAc(u);
+      });
+      el.querySelector(".etiketler").after(ac);
+    }
     el.dataset.ara = [u.ad, u.aciklama, u.yenilik || "", u.yer].join(" ").toLocaleLowerCase("tr");
     if (yeniMi(u.tarih)) {
       const y = document.createElement("span");
@@ -655,6 +677,14 @@
     if (kart.classList.contains("gizli")) { ara.value = ""; suz("hepsi"); }
     karteGit(kart);
   });
+
+  // Telefona kurulu uygulamayı açma (Android Chrome "intent" bağlantısı).
+  // Uygulama açılamazsa Chrome vitrine ?acilamadi=Ad ile döner ve bir uyarı gösterilir.
+  function uygulamaAc(u) {
+    const geri = location.origin + location.pathname + "?acilamadi=" + encodeURIComponent(u.ad);
+    location.href = "intent:#Intent;action=android.intent.action.MAIN;category=android.intent.category.LAUNCHER;package="
+      + u.paket + ";S.browser_fallback_url=" + encodeURIComponent(geri) + ";end";
+  }
 
   // Ana ekran kısayolu (?ac=Uygulama adı): karta kaydır, 2 saniye parlat, kullanım olarak say.
   (function kisayol() {
@@ -822,6 +852,15 @@
     if (navigator.vibrate) navigator.vibrate(40);
     location.reload(); // sıralama, rozetler, özet ve grafik yeni sayılarla baştan kurulur
   });
+
+  // Uygulama açılamadıysa (Chrome ?acilamadi=Ad ile geri döndü) uyarı göster. Pencere tanımlarından sonra çalışmalı.
+  (function acilamadi() {
+    let ad = null;
+    try { ad = new URLSearchParams(location.search).get("acilamadi"); } catch (e) {}
+    if (!ad) return;
+    try { history.replaceState(null, "", location.pathname); } catch (e) {}
+    iceAc("Uygulama açılamadı.", ad + " bu telefonda kurulu mu? Kuruluysa bu bilgiyi Claude'a iletin; uygulamaya küçük bir ekleme gerekiyor olabilir.", false);
+  })();
 
   // "Sıralamayı sıfırla": kullanım kaydı yoksa düğme pasif; önce onay sorulur.
   function siraDurum() {
