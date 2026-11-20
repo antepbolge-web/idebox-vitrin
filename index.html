@@ -231,6 +231,13 @@
   .rapor-sutun.bu .cubuk-yatay { background: var(--turkuaz); }
   .rapor-sutun b { text-align: right; }
   .rapor-sessiz { font-size: 17px; color: var(--soluk); line-height: 1.5; }
+  .rapor-blok.gercek { padding-bottom: 14px; border-bottom: 1px solid var(--ayrac); }
+  .gercek .rapor-liste li { flex-wrap: wrap; }
+  .gercek .rapor-liste b { white-space: nowrap; margin-left: auto; }
+  .gercek-al {
+    display: block; width: 100%; margin-top: 10px; min-height: 52px; border-radius: 16px; cursor: pointer;
+    border: 2px solid var(--turkuaz); background: transparent; color: var(--turkuaz); font: inherit; font-size: 18px; font-weight: 700;
+  }
   /* Fikir kutusu */
   .fikir-kutu { max-height: calc(100vh - 40px); overflow-y: auto; }
   .fikir-yaz {
@@ -1383,6 +1390,78 @@
   // Haftalık rapor: son 7 gün (bu hafta) ile önceki 7 gün, en çok kullanılan 3 uygulama,
   // 4 haftadır hiç açılmayanlar ve 4 haftalık toplam. Kaynak: vitrin-gun (35 gün tutulur).
   const onayRapor = document.getElementById("onay-rapor");
+
+  // Gerçek kullanım (Android, Başlatıcı 0.3.0-cafer.33+): köprü "Kullanım erişimi"nden kendi uygulamalarının
+  // günlük açılış sayısını ve ön plan süresini #kullanim=gün~paket:açılış:saniye,…;… ile gönderir (son 28 gün).
+  // vitrin-gercek = { "YYYY-MM-DD": { "Uygulama adı": [açılış, saniye] } }; her alımda tamamen yenilenir.
+  const GERCEK_ANAHTAR = "vitrin-gercek", GERCEK_ZAMAN = "vitrin-gercek-zaman";
+  function gercekOku() {
+    try {
+      const v = JSON.parse(localStorage.getItem(GERCEK_ANAHTAR) || "{}");
+      return v && typeof v === "object" && !Array.isArray(v) ? v : {};
+    } catch (e) { return {}; }
+  }
+  function sureYaz(sn) {
+    const dk = Math.round(sn / 60);
+    if (dk < 1) return sn > 0 ? "1 dk'dan az" : "0 dk";
+    const sa = Math.floor(dk / 60), kalan = dk % 60;
+    return sa ? sa + " sa" + (kalan ? " " + kalan + " dk" : "") : dk + " dk";
+  }
+  function gercekHafta(kayit, kac) { // { ad: [açılış, saniye] }, kac: 0 = son 7 gün
+    const say = {};
+    for (let i = kac * 7; i < kac * 7 + 7; i++) {
+      const d = new Date(); d.setDate(d.getDate() - i);
+      const g = kayit[bugunTarih(d)] || {};
+      Object.keys(g).forEach(a => {
+        const v = g[a]; if (!Array.isArray(v)) return;
+        const s = say[a] || (say[a] = [0, 0]); s[0] += Number(v[0]) || 0; s[1] += Number(v[1]) || 0;
+      });
+    }
+    return say;
+  }
+  function gercekIste() {
+    const geri = location.origin + location.pathname + "?kullanimyok=1";
+    location.href = "intent://kullanim#Intent;scheme=cafer;package=" + KOPRU_PAKET + ";S.browser_fallback_url=" + encodeURIComponent(geri) + ";end";
+  }
+  function gercekBlok(kutu, ekle) {
+    const kayit = gercekOku();
+    const bu = gercekHafta(kayit, 0), once = gercekHafta(kayit, 1);
+    let zaman = ""; try { zaman = localStorage.getItem(GERCEK_ZAMAN) || ""; } catch (e) {}
+    const b = ekle("div", "rapor-blok gercek"); b.appendChild(ekle("h4", "", "📱 Telefondaki gerçek kullanım"));
+    const adlar = Object.keys(bu).filter(a => bu[a][0] > 0 || bu[a][1] > 0).sort((x, y) => bu[y][1] - bu[x][1] || bu[y][0] - bu[x][0]);
+    if (adlar.length) {
+      const top = adlar.reduce((t, a) => t + bu[a][1], 0);
+      const topOnce = Object.values(once).reduce((t, v) => t + v[1], 0);
+      const satir = ekle("div"); satir.appendChild(ekle("span", "rapor-buyuk", sureYaz(top)));
+      if (topOnce > 0) {
+        const fark = Math.round((top - topOnce) / topOnce * 100);
+        satir.appendChild(ekle("span", "rapor-degisim " + (fark >= 0 ? "artis" : "azalis"), (fark >= 0 ? "▲ %" : "▼ %") + Math.abs(fark)));
+      }
+      b.appendChild(satir);
+      if (topOnce > 0) b.appendChild(ekle("div", "rapor-sessiz", "Geçen hafta: " + sureYaz(topOnce)));
+      const ul = ekle("ul", "rapor-liste");
+      adlar.slice(0, 8).forEach(a => {
+        const li = ekle("li"); li.appendChild(ekle("span", "", a));
+        li.appendChild(ekle("b", "", sureYaz(bu[a][1]) + " · " + bu[a][0] + " açılış")); ul.appendChild(li);
+      });
+      b.appendChild(ul);
+    } else if (zaman) {
+      b.appendChild(ekle("div", "rapor-sessiz", "Son 7 günde uygulamalarınız telefonda açılmamış görünüyor."));
+    } else {
+      b.appendChild(ekle("div", "rapor-sessiz", ANDROID ? "Henüz alınmadı. Düğme, Cafer Başlatıcı'dan son 4 haftanın açılış sayılarını ve sürelerini getirir." : "Telefonda Vitrin'den alınır."));
+    }
+    if (zaman) {
+      const d = new Date(zaman);
+      b.appendChild(ekle("div", "rapor-sessiz", "Son alım: " + tarihYaz(bugunTarih(d)).slice(0, 5) + " " + String(d.getHours()).padStart(2, "0") + ":" + String(d.getMinutes()).padStart(2, "0")));
+    }
+    if (ANDROID) {
+      const d = ekle("button", "gercek-al", zaman ? "🔄 Telefondan yenile" : "📱 Gerçek kullanımı al");
+      d.type = "button"; d.addEventListener("click", gercekIste); b.appendChild(d);
+    }
+    kutu.appendChild(b);
+    return adlar.length > 0;
+  }
+
   function haftaToplam(kayit, kac) { // kac: 0 = bu hafta (bugün dahil son 7 gün), 1 = önceki 7 gün …
     const say = {};
     for (let i = kac * 7; i < kac * 7 + 7; i++) {
@@ -1401,12 +1480,13 @@
     kutu.innerHTML = "";
     const ekle = (etiket, sinif, metin) => { const e = document.createElement(etiket); if (sinif) e.className = sinif; if (metin !== undefined) e.textContent = metin; return e; };
     kutu.appendChild(ekle("div", "rapor-aralik", tarihYaz(bugunTarih(bas)).slice(0, 5) + " – " + tarihYaz(bugunTarih()).slice(0, 5) + " (son 7 gün)"));
+    gercekBlok(kutu, ekle);
     if (!toplamlar.some(n => n > 0)) {
-      kutu.appendChild(ekle("div", "rapor-sessiz", "Henüz yeterli kayıt yok. Kartlara dokundukça rapor dolacak."));
+      kutu.appendChild(ekle("div", "rapor-sessiz", "Vitrin dokunuş kaydı henüz yok. Kartlara dokundukça dolacak."));
       return;
     }
     // Toplam ve değişim
-    const b1 = ekle("div", "rapor-blok"); b1.appendChild(ekle("h4", "", "Bu hafta toplam"));
+    const b1 = ekle("div", "rapor-blok"); b1.appendChild(ekle("h4", "", "Vitrin'deki dokunuşlar"));
     const satir = ekle("div"); satir.appendChild(ekle("span", "rapor-buyuk", toplamlar[0] + " dokunuş"));
     if (toplamlar[1] > 0) {
       const fark = Math.round((toplamlar[0] - toplamlar[1]) / toplamlar[1] * 100);
@@ -1424,6 +1504,7 @@
     }
     // 4 haftadır hiç açılmayanlar (yalnız telefonda açılabilen uygulamalar)
     const kullanilan = new Set(); haftalar.forEach(h => Object.keys(h).forEach(a => { if (h[a] > 0) kullanilan.add(a); }));
+    const gk = gercekOku(); [0, 1, 2, 3].forEach(i => { const h = gercekHafta(gk, i); Object.keys(h).forEach(a => { if (h[a][0] > 0) kullanilan.add(a); }); });
     const hic = UYGULAMALAR.filter(u => u.yer !== "Bilgisayar" && !kullanilan.has(u.ad)).map(u => u.ad);
     if (hic.length) {
       const b3 = ekle("div", "rapor-blok"); b3.appendChild(ekle("h4", "", "4 haftadır hiç açılmayanlar (" + hic.length + ")"));
@@ -1449,6 +1530,34 @@
   document.getElementById("rapor-kapat").addEventListener("click", raporKapat);
   onayRapor.addEventListener("click", e => { if (e.target === onayRapor) raporKapat(); });
   document.addEventListener("keydown", e => { if (e.key === "Escape" && !onayRapor.classList.contains("gizli")) raporKapat(); });
+  (function gercekAl() {
+    const m = /^#kullanim=(.*)$/.exec(location.hash || "");
+    let yok = false;
+    try { yok = new URLSearchParams(location.search).has("kullanimyok"); } catch (e) {}
+    if (!m && !yok) return;
+    try { history.replaceState(null, "", location.pathname); } catch (e) {}
+    if (yok) { iceAc("Gerçek kullanım alınamadı.", "Cafer Başlatıcı'nın 0.3.0-cafer.33 ya da sonraki sürümü kurulu olmalı.", false); return; }
+    if (m[1] === "yok") {
+      iceAc("Kullanım erişimi kapalı.", "Telefon Ayarları'nda \"Kullanım erişimi\" diye arayın, Cafer Başlatıcı'ya izin verin, sonra yeniden deneyin.", false);
+      return;
+    }
+    const paketAd = {};
+    UYGULAMALAR.forEach(u => { if (u.paket) paketAd[u.paket] = u.ad; });
+    const kayit = {};
+    m[1].slice(0, 200000).split(";").forEach(gun => {
+      const [tarih, liste] = gun.split("~");
+      if (!/^\d{4}-\d{2}-\d{2}$/.test(tarih || "") || !liste) return;
+      liste.split(",").forEach(p => {
+        const [paket, a, s] = p.split(":");
+        const ad = paketAd[paket];
+        if (!ad || !/^\d{1,6}$/.test(a || "") || !/^\d{1,7}$/.test(s || "")) return;
+        const g = kayit[tarih] || (kayit[tarih] = {});
+        const v = g[ad] || (g[ad] = [0, 0]); v[0] += Number(a); v[1] += Number(s);
+      });
+    });
+    try { localStorage.setItem(GERCEK_ANAHTAR, JSON.stringify(kayit)); localStorage.setItem(GERCEK_ZAMAN, new Date().toISOString()); } catch (e) {}
+    raporYaz(); onayRapor.classList.remove("gizli"); document.getElementById("rapor-kapat").focus();
+  })();
 
   // Fikir kutusu: fikirler yalnızca bu cihazda (vitrin-fikir) durur; dışa/içe aktarmayla taşınır.
   // Her kayıt { t: ISO tarih, m: metin }. En yeni üstte, en çok 300 kayıt, metin en çok 2000 harf.
