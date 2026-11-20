@@ -298,6 +298,22 @@
     background: var(--turkuaz-acik); color: var(--yazi);
   }
   .etiket.surum { background: var(--altin-acik); font-weight: 600; }
+  .etiket.guncelle { background: #e8711a; color: #fff; font-weight: 700; }
+  /* "Sürümleri denetle" kartı (yalnız Android) ve eski sürüm işaretleri */
+  .surum-denetle {
+    display: block; width: 100%; margin-top: 12px; padding: 14px 18px; text-align: left;
+    background: var(--kart); border: 1px solid var(--ayrac); border-left: 6px solid var(--turkuaz);
+    border-radius: 18px; box-shadow: var(--golge); color: inherit; font: inherit; cursor: pointer;
+  }
+  .surum-denetle.uyari { border-left-color: #e8711a; }
+  .surum-denetle .sd-bas { display: block; font-size: 19px; font-weight: 700; }
+  .surum-denetle .sd-alt { display: block; margin-top: 2px; font-size: 16px; color: var(--soluk); }
+  .indir-dugme {
+    display: block; margin-top: 10px; min-height: 52px; line-height: 52px; border-radius: 14px; text-align: center;
+    background: #e8711a; color: #fff; font-size: 18px; font-weight: 700; text-decoration: none;
+  }
+  body.izgara .indir-dugme { display: none; }
+  body.izgara .kart.eski .simge { outline: 3px solid #e8711a; outline-offset: 2px; }
   .etiket.yeni { background: var(--altin); color: #fff; font-weight: 700; }
   .kart p.yenilik {
     margin: -2px 0 10px; padding: 6px 10px; border-left: 3px solid var(--altin);
@@ -337,6 +353,10 @@
         <span class="gunluk-metin" aria-live="polite"><span class="gunluk-bas" id="gunluk-bas">Bugün</span><span class="gunluk-alt" id="gunluk-alt"></span></span>
       </span>
       <span class="hafta" id="hafta" role="img" aria-label="Son 7 gün"></span>
+    </button>
+    <button id="surum-denetle" class="surum-denetle gizli" type="button">
+      <span class="sd-bas" id="sd-bas">🔄 Sürümleri denetle</span>
+      <span class="sd-alt" id="sd-alt">Telefondaki uygulamaların güncel olup olmadığına bakar.</span>
     </button>
     <div class="ara-satir">
       <input id="ara" class="ara" type="search" placeholder="Ara: ad ya da özellik" aria-label="Uygulama ara" autocomplete="off">
@@ -1032,6 +1052,68 @@
     try { history.replaceState(null, "", location.pathname); } catch (e) {}
     iceAc("Uygulama açılamadı.", ad + " açılamadı. Cafer Başlatıcı'nın son sürümü (0.3.0-cafer.31 ya da sonrası) kurulu olmalı.", false);
   })();
+
+  // Sürüm denetimi (Android): Başlatıcı köprüsü (0.3.0-cafer.32+) kurulu tr.cafer.* sürüm kodlarını
+  // vitrine #surumler=paket:kod,… ile geri gönderir; kod surum.json'daki "kod"dan küçükse kart eski sayılır.
+  const APK_KLASOR = "https://drive.google.com/drive/folders/18pdAZmpNp-LtRXBIsK3qW7BPAHIJ3gmu";
+  const sdKart = document.getElementById("surum-denetle");
+  function kuruluOku() {
+    try { const v = JSON.parse(localStorage.getItem("vitrin-kurulu") || "null"); return v && typeof v === "object" ? v : null; } catch (e) { return null; }
+  }
+  function surumDurumYaz() {
+    const kurulu = kuruluOku();
+    let eski = 0;
+    document.querySelectorAll(".kart").forEach(k => {
+      const u = UYGULAMALAR.find(x => x.ad === k.querySelector("h3").textContent);
+      const kod = kurulu && u && u.paket ? kurulu[u.paket] : undefined;
+      const esk = kod !== undefined && Number(u.kod) > Number(kod);
+      k.classList.toggle("eski", esk);
+      k.querySelectorAll(".etiket.guncelle, .indir-dugme").forEach(e => e.remove());
+      if (!esk) return;
+      eski++;
+      const t = document.createElement("span");
+      t.className = "etiket guncelle";
+      t.textContent = "⬆ Güncelle";
+      k.querySelector(".etiketler").prepend(t);
+      const a = document.createElement("a");
+      a.className = "indir-dugme";
+      a.href = APK_KLASOR; a.target = "_blank"; a.rel = "noopener";
+      a.textContent = "⬇ İndir";
+      a.setAttribute("aria-label", u.ad + " yeni sürümünü indir");
+      a.addEventListener("click", e => e.stopPropagation());
+      (k.querySelector(".ac-dugme") || k.querySelector(".etiketler")).after(a);
+    });
+    if (!ANDROID) return;
+    sdKart.classList.remove("gizli");
+    sdKart.classList.toggle("uyari", eski > 0);
+    let zaman = "";
+    try { const z = localStorage.getItem("vitrin-denetim"); if (z) { const d = new Date(z); zaman = tarihYaz(bugunTarih(d)).slice(0, 5) + " " + String(d.getHours()).padStart(2, "0") + ":" + String(d.getMinutes()).padStart(2, "0"); } } catch (e) {}
+    document.getElementById("sd-bas").textContent = !kurulu ? "🔄 Sürümleri denetle" : eski ? "⬆ " + eski + " uygulama güncellenmeli" : "✅ Bütün uygulamalar güncel";
+    document.getElementById("sd-alt").textContent = !kurulu ? "Telefondaki uygulamaların güncel olup olmadığına bakar." : "Son denetim: " + zaman + " · yeniden denetlemek için dokunun";
+  }
+  (function surumleriAl() {
+    const m = /^#surumler=([a-z0-9_.:,]*)$/.exec(location.hash || "");
+    if (m) {
+      const kurulu = {};
+      m[1].split(",").forEach(p => {
+        const [paket, kod] = p.split(":");
+        if (/^tr\.cafer\.[a-z][a-z0-9_]*(\.[a-z][a-z0-9_]*)*$/.test(paket || "") && /^\d{1,12}$/.test(kod || "")) kurulu[paket] = Number(kod);
+      });
+      try { localStorage.setItem("vitrin-kurulu", JSON.stringify(kurulu)); localStorage.setItem("vitrin-denetim", new Date().toISOString()); } catch (e) {}
+      try { history.replaceState(null, "", location.pathname); } catch (e) {}
+    }
+    let denetimYok = false;
+    try { denetimYok = new URLSearchParams(location.search).has("denetimyok"); } catch (e) {}
+    if (denetimYok) {
+      try { history.replaceState(null, "", location.pathname); } catch (e) {}
+      iceAc("Sürüm denetimi yapılamadı.", "Cafer Başlatıcı'nın 0.3.0-cafer.32 ya da sonraki sürümü kurulu olmalı.", false);
+    }
+    surumDurumYaz();
+  })();
+  sdKart.addEventListener("click", () => {
+    const geri = location.origin + location.pathname + "?denetimyok=1";
+    location.href = "intent://surumler#Intent;scheme=cafer;package=tr.cafer.baslatici;S.browser_fallback_url=" + encodeURIComponent(geri) + ";end";
+  });
 
   // "Sıralamayı sıfırla": kullanım kaydı yoksa düğme pasif; önce onay sorulur.
   function siraDurum() {
