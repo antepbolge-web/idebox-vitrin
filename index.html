@@ -1714,6 +1714,42 @@
       try { t.start(); } catch (e) { durdur(); goster("Mikrofon başlatılamadı", false, 3000); }
     });
   })();
+  // Uzun basma kısayolları (?git=fikir | ses | rapor): ilgili pencere açılır, adres temizlenir.
+  (function kisayolGit() {
+    let git = null;
+    try { git = new URLSearchParams(location.search).get("git"); } catch (e) {}
+    if (!git) return;
+    try { history.replaceState(null, "", location.pathname); } catch (e) {}
+    if (git === "fikir") fikirAc();
+    else if (git === "rapor") document.getElementById("rapor-ac").click();
+    else if (git === "ses") {
+      const ses = document.getElementById("ses");
+      if (ses.classList.contains("gizli")) { ara.focus(); return; } // ses tanıma yoksa yazarak arama
+      setTimeout(() => ses.click(), 300);
+    }
+  })();
+  // Paylaş → Vitrin (manifest share_target, GET): başlık, metin ve bağlantı fikir kutusuna yazılmış gelir;
+  // kullanıcı not ekleyip Kaydet'e basar. Aynı parça iki kez yazılmaz (Android bağlantıyı çoğu kez metne de koyar).
+  // Yarım kalmış taslak varsa paylaşılan metin onun altına eklenir.
+  (function paylasimAl() {
+    let q;
+    try { q = new URLSearchParams(location.search); } catch (e) { return; }
+    const parcalar = [];
+    ["paylas_baslik", "paylas_metin", "paylas_url"].forEach(k => {
+      const v = String(q.get(k) || "").trim();
+      if (v && !parcalar.some(p => p.includes(v))) parcalar.push(v);
+    });
+    if (!["paylas_baslik", "paylas_metin", "paylas_url"].some(k => q.has(k))) return;
+    try { history.replaceState(null, "", location.pathname); } catch (e) {}
+    fikirAc();
+    if (!parcalar.length) { fikirBildir("Paylaşılan içerik boş geldi"); return; }
+    const onceki = fikirAlan.value.trim();
+    fikirAlan.value = ((onceki ? onceki + "\n\n" : "") + parcalar.join("\n")).slice(0, 2000);
+    fikirAlan.dispatchEvent(new Event("input")); // Kaydet açılır, taslak saklanır
+    fikirAlan.setSelectionRange(0, 0); fikirAlan.scrollTop = 0;
+    clearTimeout(fikirDurumZaman);
+    fikirDurum.textContent = "📥 Paylaşılan metin geldi. İsterseniz not ekleyip Kaydet'e basın.";
+  })();
   document.getElementById("say-toplam").textContent = UYGULAMALAR.length;
   const son = UYGULAMALAR.map(u => u.tarih).sort().pop();
   document.getElementById("say-son").textContent = tarihYaz(son).slice(0, 5);
