@@ -260,6 +260,25 @@
     font: inherit; font-size: 17px; font-weight: 700; cursor: pointer; white-space: nowrap;
   }
   .gorunum[aria-pressed="true"] { background: var(--turkuaz); border-color: var(--turkuaz); color: #fff; }
+  /* Sesli açma: mikrofon düğmesi ve alttaki bilgi şeridi */
+  .ses {
+    flex: 0 0 52px; min-height: 52px; border-radius: 16px; border: 1px solid var(--ayrac);
+    background: var(--kart); font-size: 24px; cursor: pointer; padding: 0;
+  }
+  .ses.dinliyor { background: #e53935; border-color: #e53935; animation: ses-nabiz 1.1s ease-in-out infinite; }
+  .ses.cevrimdisi { opacity: .4; }
+  @keyframes ses-nabiz { 50% { box-shadow: 0 0 0 8px rgba(229,57,53,.25); } }
+  .ses-serit {
+    position: fixed; left: 50%; bottom: 24px; z-index: 25; transform: translateX(-50%);
+    width: calc(100% - 32px); max-width: 440px; display: flex; align-items: center; gap: 10px;
+    padding: 10px 10px 10px 16px; border-radius: 18px; background: var(--yazi); color: var(--bg);
+    font-size: 18px; font-weight: 600; box-shadow: var(--golge);
+  }
+  .ses-serit span { flex: 1; min-width: 0; overflow-wrap: anywhere; }
+  .ses-serit button {
+    flex: 0 0 auto; min-height: 48px; padding: 0 18px; border-radius: 14px; border: 0; cursor: pointer;
+    background: var(--altin); color: #fff; font: inherit; font-size: 17px; font-weight: 700;
+  }
   .suzgec {
     display: flex; gap: 8px; margin-top: 24px;
     background: var(--kart); border: 1px solid var(--ayrac); border-radius: 16px; padding: 4px;
@@ -393,6 +412,7 @@
       transform: translateY(calc(-1 * var(--klavye, 0px)));
     }
     body { padding-bottom: calc(96px + env(safe-area-inset-bottom)); }
+    .ses-serit { bottom: calc(84px + env(safe-area-inset-bottom) + var(--klavye, 0px)); }
   }
 </style>
 </head>
@@ -434,6 +454,7 @@
     </button>
     <div class="ara-satir">
       <input id="ara" class="ara" type="search" placeholder="Ara: ad ya da özellik" aria-label="Uygulama ara" autocomplete="off">
+      <button id="ses" class="ses gizli" type="button" aria-label="Sesle ara" title="Sesle ara">🎤</button>
       <button id="gorunum" class="gorunum" type="button" aria-pressed="false">▦ Izgara</button>
     </div>
     <div class="suzgec" role="group" aria-label="Süzgeç">
@@ -466,6 +487,7 @@
 
   <footer>ideabox · bilgiler cm/surum.json dosyasından</footer>
 </main>
+<div class="ses-serit gizli" id="ses-serit" role="status" aria-live="polite"><span id="ses-metin"></span><button type="button" id="ses-iptal" class="gizli">İptal</button></div>
 
 <div class="onay gizli" id="onay" role="alertdialog" aria-modal="true" aria-labelledby="onay-soru">
   <div class="onay-kutu">
@@ -1607,6 +1629,85 @@
     ara.blur();
     if (ilk && ilk.izgaraAc) ilk.izgaraAc();
   });
+  // Sesli açma: Chrome'un ses tanıması (Türkçe) konuşmayı aramaya yazar. Tek ve net bir sonuç varsa
+  // (ya da söylenen tam bir uygulama adıysa) uygulama 1 saniye sonra açılır; bu sırada "İptal" görünür.
+  // Ses tanıma internet ister; çevrim dışıyken düğme soluk görünür ve uyarı verir.
+  (function sesliAcma() {
+    const Tanima = window.SpeechRecognition || window.webkitSpeechRecognition;
+    const dugme = document.getElementById("ses");
+    if (!Tanima) return; // desteklemeyen tarayıcıda düğme hiç görünmez
+    dugme.classList.remove("gizli");
+    const serit = document.getElementById("ses-serit"), seritMetin = document.getElementById("ses-metin"), iptal = document.getElementById("ses-iptal");
+    let tanima = null, acZaman = 0, gizleZaman = 0;
+    function goster(metin, iptalVar, sure) {
+      seritMetin.textContent = metin;
+      iptal.classList.toggle("gizli", !iptalVar);
+      serit.classList.remove("gizli");
+      clearTimeout(gizleZaman);
+      if (sure) gizleZaman = setTimeout(() => serit.classList.add("gizli"), sure);
+    }
+    function gizle() { clearTimeout(gizleZaman); serit.classList.add("gizli"); }
+    function acmayiDurdur() { if (acZaman) { clearTimeout(acZaman); acZaman = 0; gizle(); } }
+    iptal.addEventListener("click", () => { acmayiDurdur(); goster("Açma iptal edildi", false, 1500); });
+    ara.addEventListener("input", acmayiDurdur); // kullanıcı yazmaya başlarsa açılmaz
+    function cevrim() { dugme.classList.toggle("cevrimdisi", !navigator.onLine); }
+    window.addEventListener("online", cevrim); window.addEventListener("offline", cevrim); cevrim();
+    function gorunenKartlar() {
+      const liste = [];
+      ["favori", "ana", "yardimci"].forEach(g => [...document.getElementById(g).children].forEach(k => { if (!k.classList.contains("gizli")) liste.push(k); }));
+      return liste.sort((a, b) => (Number(a.style.order) || 0) - (Number(b.style.order) || 0));
+    }
+    function sonucuIsle(adaylar) {
+      // Sırayla dene: sonuç veren ilk duyulan cümle aramada kalır.
+      let kartlar = [], metin = adaylar[0] || "";
+      for (const a of adaylar) {
+        ara.value = a; suz(); kartlar = gorunenKartlar();
+        if (kartlar.length) { metin = a; break; }
+      }
+      ara.value = metin; suz(); kartlar = gorunenKartlar();
+      delete ara.dataset.kaydi;
+      ara.dispatchEvent(new Event("input")); // telefonda sonuçlara kaydır
+      if (!kartlar.length) { goster("“" + metin + "” için uygulama bulunamadı", false, 3000); return; }
+      const q = duzle(metin);
+      const tamAd = kartlar.filter(k => k.dataset.adn === q);
+      const hedef = kartlar.length === 1 ? kartlar[0] : (tamAd.length === 1 ? tamAd[0] : null);
+      if (!hedef || !hedef.izgaraAc) { goster(kartlar.length + " sonuç bulundu, birini seçin", false, 2500); return; }
+      const ad = hedef.querySelector("h3") ? hedef.querySelector("h3").textContent : "Uygulama";
+      goster("▶ " + ad + " açılıyor…", true, 0);
+      if (navigator.vibrate) navigator.vibrate(30);
+      acZaman = setTimeout(() => { acZaman = 0; gizle(); hedef.izgaraAc(); }, 1000);
+    }
+    function durdur() { if (tanima) { try { tanima.abort(); } catch (e) {} tanima = null; } dugme.classList.remove("dinliyor"); }
+    dugme.addEventListener("click", () => {
+      if (tanima) { durdur(); gizle(); return; } // ikinci dokunuş dinlemeyi bitirir
+      acmayiDurdur();
+      if (!navigator.onLine) { goster("Sesli arama için internet gerekli", false, 3000); return; }
+      const t = new Tanima();
+      t.lang = "tr-TR"; t.interimResults = true; t.maxAlternatives = 3; t.continuous = false;
+      let bitti = false;
+      t.onresult = e => {
+        const r = e.results[e.results.length - 1];
+        if (!r.isFinal) { ara.value = r[0].transcript; suz(); return; } // konuşurken arama canlı dolar
+        bitti = true;
+        const adaylar = [...r].map(x => String(x.transcript || "").trim()).filter(Boolean);
+        durdur();
+        sonucuIsle(adaylar);
+      };
+      t.onerror = e => {
+        durdur();
+        const neden = { "not-allowed": "Mikrofon izni verilmedi. Chrome ayarlarından izin verin.", "service-not-allowed": "Mikrofon izni verilmedi. Chrome ayarlarından izin verin.",
+          "network": "Sesli arama için internet gerekli", "no-speech": "Ses duyulmadı, tekrar deneyin", "audio-capture": "Mikrofon bulunamadı", "aborted": "" }[e.error];
+        if (neden === "") return;
+        goster(neden || "Ses anlaşılamadı, tekrar deneyin", false, 3500);
+        bitti = true;
+      };
+      t.onend = () => { const b = bitti; durdur(); if (!b) goster("Ses duyulmadı, tekrar deneyin", false, 2500); };
+      tanima = t;
+      dugme.classList.add("dinliyor");
+      goster("🎤 Dinliyorum… uygulamanın adını söyleyin", false, 0);
+      try { t.start(); } catch (e) { durdur(); goster("Mikrofon başlatılamadı", false, 3000); }
+    });
+  })();
   document.getElementById("say-toplam").textContent = UYGULAMALAR.length;
   const son = UYGULAMALAR.map(u => u.tarih).sort().pop();
   document.getElementById("say-son").textContent = tarihYaz(son).slice(0, 5);
