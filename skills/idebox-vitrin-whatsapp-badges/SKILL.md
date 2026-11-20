@@ -38,6 +38,7 @@ Static, server-less showcase page: `index.html` (data + CSS + JS in one file), `
 | Data source (cache v15) | `UYGULAMALAR` (26 apps) mirrors **`antepbolge-web/cm` → `surum.json`** (the file the apps read for updates): `ad` = phone name, `surum` (strip `-telefon.N`), `paket`, `yenilik` = "Bu sürümde". `tarih` = modified date of the APK in Drive `apk-indir` (PC-only apps: first date their version appeared in `surum.json`). `yer` "Telefon + Bilgisayar" when a `pc_*` entry exists; Fişmatik and Masaüstü Widget are PC-only (no `paket`). Apps without an icon file show their first letter. |
 | Renames | `ESKI_ADLAR` maps old card names to phone names (Cafer Telefon→Telefon, Notlar→Defter, Arama Asistanı→Spotlight, …). `adTasi()` runs once at startup, before cards are built: moves `vitrin-kul:` / `vitrin-wa:` keys and merges `vitrin-gun` entries. `guncelAd()` is applied to `?ac=`, `?acilamadi=` and import files, so old shortcuts and old export files keep working. Manifest shortcuts: Telefon, Vakit, Defter. |
 | Daily sync | `tools/esitle.py` + `.github/workflows/esitle.yml` ("Vitrini surum.json ile eşitle", daily 04:23 UTC = 07:23 TR, and manual). Reads `cm/surum.json` (raw URL, or a local path argument), matches cards by `paket`, else by name (`pc_*` entries for `yer: "Bilgisayar"`), else by key = last part of the package (e.g. `kilit`, whose `paket` is empty). Changes only `surum` (strips `-telefon.N`), `tarih` (Turkey date, only when the version changes) and `yenilik`; bumps `SAKLA` in `sw.js`. New apps and renamed apps are only reported (job summary), never added: renames need `ESKI_ADLAR`. On change it commits to `main` and requests a Pages build (`GITHUB_TOKEN` pushes don't trigger one). The old `ideabox/apps/tanitim/vitrin-guncelle.ps1` and the stale copy there were removed on 2026-11-19. |
+| Icons (cache v18) | All 26 cards have icons in `simgeler/`. Sources: `mipmap-xxxhdpi/ic_launcher.png` of each app repo (`ideabox/apps/*`, `speed-dial`, `cafer-hepsi/*`), Kilit's adaptive icon converted to SVG, Masaüstü Widget's `icon.ico` (256 px layer), Kim Arıyor extracted from its APK in Drive `apk-indir` (`res/o-.png`). Fişmatik's icon is only embedded in its 100 MB exe, so `fismatik.svg` is a family-style drawing (turquoise, receipt, gold star). |
 
 ## Rules to keep
 
@@ -71,6 +72,6 @@ Plan in 5 points → wait for approval → one step at a time, ask "Shall I cont
 
 ## Possible next steps
 
-1. Add icons for the 11 letter-only cards (Speed Dial, Kim Arıyor, Kıble, …).
+1. Replace the drawn Fişmatik icon (`simgeler/fismatik.svg`) with the program's own icon when its source is available.
 2. Hide the mini chart while the whole week is empty.
 3. Remind to export once a week (small note under the export button with the last export date).
