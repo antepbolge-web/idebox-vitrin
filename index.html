@@ -150,6 +150,28 @@
     border: 1px solid var(--ayrac); border-radius: 22px; padding: 24px 20px 20px; box-shadow: var(--golge);
   }
   .onay-kutu p { margin: 0 0 20px; font-size: 22px; font-weight: 700; line-height: 1.3; }
+  /* Haftalık rapor */
+  .rapor-ac {
+    display: block; width: 100%; margin-top: 10px; min-height: 52px; border-radius: 16px;
+    border: 1px solid var(--ayrac); background: var(--kart); color: var(--turkuaz);
+    font: inherit; font-size: 18px; font-weight: 700; cursor: pointer;
+  }
+  .rapor-kutu { max-height: calc(100vh - 40px); overflow-y: auto; }
+  .rapor-kutu #rapor-baslik { margin-bottom: 4px; }
+  .rapor-aralik { font-size: 16px; color: var(--soluk); margin-bottom: 14px; }
+  .rapor-blok { margin: 0 0 16px; }
+  .rapor-blok h4 { margin: 0 0 6px; font-size: 17px; color: var(--soluk); font-weight: 600; }
+  .rapor-buyuk { font-size: 22px; font-weight: 800; }
+  .rapor-degisim { font-size: 17px; font-weight: 700; margin-left: 6px; }
+  .rapor-degisim.artis { color: #1f9d55; } .rapor-degisim.azalis { color: #e8711a; }
+  .rapor-liste { margin: 0; padding: 0; list-style: none; font-size: 18px; }
+  .rapor-liste li { display: flex; justify-content: space-between; gap: 10px; padding: 6px 0; border-bottom: 1px solid var(--ayrac); }
+  .rapor-liste li:last-child { border-bottom: 0; }
+  .rapor-sutun { display: grid; grid-template-columns: 7.5em 1fr 2.5em; align-items: center; gap: 8px; margin: 6px 0; font-size: 16px; }
+  .rapor-sutun .cubuk-yatay { height: 14px; border-radius: 0 4px 4px 0; background: color-mix(in srgb, var(--turkuaz) 38%, transparent); min-width: 2px; }
+  .rapor-sutun.bu .cubuk-yatay { background: var(--turkuaz); }
+  .rapor-sutun b { text-align: right; }
+  .rapor-sessiz { font-size: 17px; color: var(--soluk); line-height: 1.5; }
   .onay-dugmeler { display: flex; gap: 12px; }
   .onay-dugmeler button {
     flex: 1; min-height: 56px; border-radius: 16px; font: inherit; font-size: 18px; font-weight: 700; cursor: pointer;
@@ -254,6 +276,17 @@
   body.izgara .yildiz { display: none; }
   body.izgara .kart > div:nth-child(2) { padding-right: 0; }
 
+  /* "Şu saatlerde": o dilimde en çok kullanılan 4 uygulama, küçük simgeler (her iki görünümde) */
+  .simdi { display: grid; grid-template-columns: repeat(4, 1fr); gap: 6px; }
+  .simdi:empty { display: none; }
+  .simdi-oge {
+    display: flex; flex-direction: column; align-items: center; gap: 6px; min-width: 0; padding: 6px 2px;
+    background: none; border: 0; color: inherit; font: inherit; cursor: pointer;
+  }
+  .simdi-oge .simge { flex: 0 0 auto; width: 56px; height: 56px; border-radius: 15px; box-shadow: var(--golge); pointer-events: none; }
+  .simdi-oge span { width: 100%; font-size: 15px; font-weight: 600; line-height: 1.25; text-align: center; overflow-wrap: anywhere;
+    display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+
   /* Izgara görünümü: kartlar ana ekran gibi simge + ad olur (telefonda 4'lü, çok dar ekranda 3'lü) */
   body.izgara .liste { grid-template-columns: repeat(auto-fill, minmax(76px, 1fr)); gap: 18px 6px; }
   body.izgara .kart {
@@ -354,6 +387,7 @@
       </span>
       <span class="hafta" id="hafta" role="img" aria-label="Son 7 gün"></span>
     </button>
+    <button id="rapor-ac" class="rapor-ac" type="button">📊 Haftalık rapor</button>
     <button id="surum-denetle" class="surum-denetle gizli" type="button">
       <span class="sd-bas" id="sd-bas">🔄 Sürümleri denetle</span>
       <span class="sd-alt" id="sd-alt">Telefondaki uygulamaların güncel olup olmadığına bakar.</span>
@@ -371,6 +405,9 @@
 
   <h2 id="b-favori" class="gizli">★ Favoriler</h2>
   <div class="liste" id="favori"></div>
+
+  <h2 id="b-simdi" class="gizli"></h2>
+  <div class="simdi" id="simdi"></div>
 
   <h2 id="b-ana">Ana uygulamalar</h2>
   <div class="liste" id="ana"></div>
@@ -397,6 +434,14 @@
       <button type="button" id="onay-vazgec">Vazgeç</button>
       <button type="button" id="onay-evet">Evet, sıfırla</button>
     </div>
+  </div>
+</div>
+
+<div class="onay gizli" id="onay-rapor" role="dialog" aria-modal="true" aria-labelledby="rapor-baslik">
+  <div class="onay-kutu rapor-kutu">
+    <p id="rapor-baslik">📊 Haftalık rapor</p>
+    <div id="rapor-icerik"></div>
+    <div class="onay-dugmeler"><button type="button" id="rapor-kapat">Tamam</button></div>
   </div>
 </div>
 
@@ -707,16 +752,35 @@
       return v && typeof v === "object" && !Array.isArray(v) ? v : {};
     } catch (e) { return {}; }
   }
+  // Kayıtlar 5 hafta (35 gün) tutulur: 7 günlük grafik ve 4 haftalık rapor buradan okunur.
+  const KAYIT_GUN = 35;
+  function enEskiTarih() { const d = new Date(); d.setDate(d.getDate() - (KAYIT_GUN - 1)); return bugunTarih(d); }
+  // Günün dört dilimi; "Şu saatlerde" önerisi bu dilimlerin kaydından çıkar (vitrin-dilim: { tarih: { dilim: { uygulama: sayı } } }).
+  const DILIM_ANAHTAR = "vitrin-dilim";
+  const DILIMLER = { sabah: "🌅 Sabah", ogle: "☀️ Öğle", aksam: "🌇 Akşam", gece: "🌙 Gece" };
+  function dilimAdi(d) {
+    const s = (d || new Date()).getHours();
+    return s >= 5 && s < 11 ? "sabah" : s >= 11 && s < 16 ? "ogle" : s >= 16 && s < 21 ? "aksam" : "gece";
+  }
+  function dilimOku() {
+    try { const v = JSON.parse(localStorage.getItem(DILIM_ANAHTAR) || "{}"); return v && typeof v === "object" && !Array.isArray(v) ? v : {}; } catch (e) { return {}; }
+  }
   function gunKaydet(ad) {
     const kayit = gunOku();
     const bugun = bugunTarih();
     const gun = kayit[bugun] && typeof kayit[bugun] === "object" ? kayit[bugun] : {};
     gun[ad] = (Number(gun[ad]) || 0) + 1;
     kayit[bugun] = gun;
-    const sinir = new Date(); sinir.setDate(sinir.getDate() - 6);
-    const enEski = bugunTarih(sinir);
+    const enEski = enEskiTarih();
     Object.keys(kayit).forEach(t => { if (t < enEski) delete kayit[t]; });
     try { localStorage.setItem(GUN_ANAHTAR, JSON.stringify(kayit)); } catch (e) {}
+    const dk = dilimOku(), dilim = dilimAdi();
+    const dg = dk[bugun] && typeof dk[bugun] === "object" ? dk[bugun] : {};
+    const dd = dg[dilim] && typeof dg[dilim] === "object" ? dg[dilim] : {};
+    dd[ad] = (Number(dd[ad]) || 0) + 1;
+    dg[dilim] = dd; dk[bugun] = dg;
+    Object.keys(dk).forEach(t => { if (t < enEski) delete dk[t]; });
+    try { localStorage.setItem(DILIM_ANAHTAR, JSON.stringify(dk)); } catch (e) {}
     ozetYaz();
   }
 
@@ -749,8 +813,43 @@
     hafta.setAttribute("aria-label", "Son 7 gün dokunuş sayısı: " + gunler.map(g => (g.bugun ? "bugün" : g.ad) + " " + g.toplam).join(", "));
   }
 
+  // "Şu saatlerde": şimdiki dilimde son 5 haftada en çok kullanılan 4 uygulama (favoriler hariç).
+  // Dilimde en az 5 dokunuş birikmeden gösterilmez.
+  function simdiYaz() {
+    const dilim = dilimAdi();
+    const toplam = {};
+    Object.values(dilimOku()).forEach(g => {
+      const d = g && g[dilim];
+      if (d && typeof d === "object") Object.keys(d).forEach(a => { toplam[a] = (toplam[a] || 0) + (Number(d[a]) || 0); });
+    });
+    const hepsi = Object.values(toplam).reduce((t, n) => t + n, 0);
+    const favoriler = favoriOku();
+    const secilen = Object.keys(toplam).filter(a => toplam[a] > 0 && !favoriler.includes(a) && kartBul(a))
+      .sort((a, b) => toplam[b] - toplam[a]).slice(0, 4);
+    const kutu = document.getElementById("simdi"), baslik = document.getElementById("b-simdi");
+    kutu.innerHTML = "";
+    const goster = hepsi >= 5 && secilen.length > 0;
+    baslik.classList.toggle("gizli", !goster);
+    if (!goster) return;
+    baslik.textContent = DILIMLER[dilim] + " sık kullandıklarınız";
+    secilen.forEach(ad => {
+      const kart = kartBul(ad);
+      const b = document.createElement("button");
+      b.type = "button"; b.className = "simdi-oge";
+      b.setAttribute("aria-label", ad + (ANDROID && kart.izgaraAc ? " uygulamasını aç" : " kartına git"));
+      const simge = kart.querySelector(".simge").cloneNode(true);
+      simge.classList.remove("sayac"); simge.removeAttribute("role"); simge.removeAttribute("tabindex"); simge.removeAttribute("aria-label");
+      simge.setAttribute("aria-hidden", "true");
+      const yazi = document.createElement("span"); yazi.textContent = ad;
+      b.append(simge, yazi);
+      b.addEventListener("click", () => kart.izgaraAc());
+      kutu.appendChild(b);
+    });
+  }
+
   function ozetYaz() {
     haftaYaz();
+    if (typeof FAVORI_HAZIR !== "undefined") simdiYaz();
     const gun = gunOku()[bugunTarih()] || {};
     const adlar = Object.keys(gun).filter(a => Number(gun[a]) > 0);
     const bas = document.getElementById("gunluk-bas"), alt = document.getElementById("gunluk-alt");
@@ -788,6 +887,7 @@
 
   // Favoriler: en fazla 4 uygulama, sayfanın en üstünde ayrı bölümde; seçim sırası korunur (vitrin-favori).
   const FAVORI_EN_COK = 4;
+  var FAVORI_HAZIR = true; // ozetYaz, favori bilgisi hazır olmadan "Şu saatlerde"yi çizmesin (var: TDZ'siz denetlenebilir)
   function favoriOku() {
     try {
       const v = JSON.parse(localStorage.getItem("vitrin-favori") || "[]");
@@ -814,6 +914,7 @@
       yildizYaz(k, false);
     });
     favoriler.forEach(ad => { const k = kartBul(ad); if (k) { kutu.appendChild(k); yildizYaz(k, true); } });
+    simdiYaz();
     // Açılışta arama kutusu henüz tanımlı değil (TDZ): yalnızca başlık güncellenir; sonrasında süzgeç yeniden uygulanır.
     if (ilk) document.getElementById("b-favori").classList.toggle("gizli", !kutu.children.length);
     else suz();
@@ -919,7 +1020,7 @@
 
   // Sayaçları dışa aktar: WhatsApp, kullanım ve son 7 gün tek bir JSON dosyasına yazılır.
   function sayacVerisi() {
-    const veri = { uygulama: "ideabox-vitrin", bicim: 1, tarih: new Date().toISOString(), whatsapp: {}, kullanim: {}, gunluk: gunOku(), favoriler: favoriOku() };
+    const veri = { uygulama: "ideabox-vitrin", bicim: 1, tarih: new Date().toISOString(), whatsapp: {}, kullanim: {}, gunluk: gunOku(), dilim: dilimOku(), favoriler: favoriOku() };
     try {
       for (let i = 0; i < localStorage.length; i++) {
         const k = localStorage.key(i);
@@ -979,14 +1080,27 @@
       const k = v[t] && typeof v[t] === "object" ? v[t] : {};
       Object.keys(k).forEach(eski => { const ad = guncelAd(eski); if (adlar.has(ad) && sayi(k[eski])) temiz[t][ad] = (temiz[t][ad] || 0) + sayi(k[eski]); });
     });
-    const sinir = new Date(); sinir.setDate(sinir.getDate() - 6);
-    const enEski = bugunTarih(sinir);
+    const enEski = enEskiTarih();
     const g = v.gunluk && typeof v.gunluk === "object" ? v.gunluk : {};
     Object.keys(g).forEach(t => {
       if (!/^\d{4}-\d{2}-\d{2}$/.test(t) || t < enEski || !g[t] || typeof g[t] !== "object") return;
       const gun = {};
       Object.keys(g[t]).forEach(eski => { const ad = guncelAd(eski); if (adlar.has(ad) && sayi(g[t][eski])) gun[ad] = (gun[ad] || 0) + sayi(g[t][eski]); });
       if (Object.keys(gun).length) temiz.gunluk[t] = gun;
+    });
+    temiz.dilim = {};
+    const dl = v.dilim && typeof v.dilim === "object" ? v.dilim : {};
+    Object.keys(dl).forEach(t => {
+      if (!/^\d{4}-\d{2}-\d{2}$/.test(t) || t < enEski || !dl[t] || typeof dl[t] !== "object") return;
+      const gun = {};
+      Object.keys(DILIMLER).forEach(d => {
+        const k = dl[t][d] && typeof dl[t][d] === "object" ? dl[t][d] : null;
+        if (!k) return;
+        const say = {};
+        Object.keys(k).forEach(eski => { const ad = guncelAd(eski); if (adlar.has(ad) && sayi(k[eski])) say[ad] = (say[ad] || 0) + sayi(k[eski]); });
+        if (Object.keys(say).length) gun[d] = say;
+      });
+      if (Object.keys(gun).length) temiz.dilim[t] = gun;
     });
     return temiz;
   }
@@ -1035,6 +1149,7 @@
       Object.keys(v.kullanim).forEach(ad => localStorage.setItem("vitrin-kul:" + ad, String(v.kullanim[ad])));
       localStorage.setItem(GUN_ANAHTAR, JSON.stringify(v.gunluk));
       localStorage.setItem("vitrin-favori", JSON.stringify(v.favoriler));
+      localStorage.setItem(DILIM_ANAHTAR, JSON.stringify(v.dilim));
     } catch (e) {
       iceAc("Sayılar kaydedilemedi.", "Telefonun depolama alanına yazılamadı.", false);
       return;
@@ -1052,6 +1167,76 @@
     try { history.replaceState(null, "", location.pathname); } catch (e) {}
     iceAc("Uygulama açılamadı.", ad + " açılamadı. Cafer Başlatıcı'nın son sürümü (0.3.0-cafer.31 ya da sonrası) kurulu olmalı.", false);
   })();
+
+  // Haftalık rapor: son 7 gün (bu hafta) ile önceki 7 gün, en çok kullanılan 3 uygulama,
+  // 4 haftadır hiç açılmayanlar ve 4 haftalık toplam. Kaynak: vitrin-gun (35 gün tutulur).
+  const onayRapor = document.getElementById("onay-rapor");
+  function haftaToplam(kayit, kac) { // kac: 0 = bu hafta (bugün dahil son 7 gün), 1 = önceki 7 gün …
+    const say = {};
+    for (let i = kac * 7; i < kac * 7 + 7; i++) {
+      const d = new Date(); d.setDate(d.getDate() - i);
+      const g = kayit[bugunTarih(d)] || {};
+      Object.keys(g).forEach(a => { say[a] = (say[a] || 0) + (Number(g[a]) || 0); });
+    }
+    return say;
+  }
+  function raporYaz() {
+    const kayit = gunOku();
+    const haftalar = [0, 1, 2, 3].map(i => haftaToplam(kayit, i));
+    const toplamlar = haftalar.map(h => Object.values(h).reduce((t, n) => t + n, 0));
+    const bas = new Date(); bas.setDate(bas.getDate() - 6);
+    const kutu = document.getElementById("rapor-icerik");
+    kutu.innerHTML = "";
+    const ekle = (etiket, sinif, metin) => { const e = document.createElement(etiket); if (sinif) e.className = sinif; if (metin !== undefined) e.textContent = metin; return e; };
+    kutu.appendChild(ekle("div", "rapor-aralik", tarihYaz(bugunTarih(bas)).slice(0, 5) + " – " + tarihYaz(bugunTarih()).slice(0, 5) + " (son 7 gün)"));
+    if (!toplamlar.some(n => n > 0)) {
+      kutu.appendChild(ekle("div", "rapor-sessiz", "Henüz yeterli kayıt yok. Kartlara dokundukça rapor dolacak."));
+      return;
+    }
+    // Toplam ve değişim
+    const b1 = ekle("div", "rapor-blok"); b1.appendChild(ekle("h4", "", "Bu hafta toplam"));
+    const satir = ekle("div"); satir.appendChild(ekle("span", "rapor-buyuk", toplamlar[0] + " dokunuş"));
+    if (toplamlar[1] > 0) {
+      const fark = Math.round((toplamlar[0] - toplamlar[1]) / toplamlar[1] * 100);
+      satir.appendChild(ekle("span", "rapor-degisim " + (fark >= 0 ? "artis" : "azalis"), (fark >= 0 ? "▲ %" : "▼ %") + Math.abs(fark)));
+      b1.appendChild(satir); b1.appendChild(ekle("div", "rapor-sessiz", "Geçen hafta: " + toplamlar[1] + " dokunuş"));
+    } else { b1.appendChild(satir); b1.appendChild(ekle("div", "rapor-sessiz", "Geçen haftanın kaydı yok.")); }
+    kutu.appendChild(b1);
+    // En çok kullanılan 3
+    const enCok = Object.keys(haftalar[0]).filter(a => haftalar[0][a] > 0).sort((a, b) => haftalar[0][b] - haftalar[0][a]).slice(0, 3);
+    if (enCok.length) {
+      const b2 = ekle("div", "rapor-blok"); b2.appendChild(ekle("h4", "", "En çok kullanılanlar"));
+      const ul = ekle("ul", "rapor-liste");
+      enCok.forEach((a, i) => { const li = ekle("li"); li.appendChild(ekle("span", "", ["🥇", "🥈", "🥉"][i] + " " + a)); li.appendChild(ekle("b", "", String(haftalar[0][a]))); ul.appendChild(li); });
+      b2.appendChild(ul); kutu.appendChild(b2);
+    }
+    // 4 haftadır hiç açılmayanlar (yalnız telefonda açılabilen uygulamalar)
+    const kullanilan = new Set(); haftalar.forEach(h => Object.keys(h).forEach(a => { if (h[a] > 0) kullanilan.add(a); }));
+    const hic = UYGULAMALAR.filter(u => u.yer !== "Bilgisayar" && !kullanilan.has(u.ad)).map(u => u.ad);
+    if (hic.length) {
+      const b3 = ekle("div", "rapor-blok"); b3.appendChild(ekle("h4", "", "4 haftadır hiç açılmayanlar (" + hic.length + ")"));
+      b3.appendChild(ekle("div", "rapor-sessiz", hic.join(", ")));
+      kutu.appendChild(b3);
+    }
+    // 4 haftalık yatay çubuklar: en eski üstte
+    const b4 = ekle("div", "rapor-blok"); b4.appendChild(ekle("h4", "", "Son 4 hafta"));
+    const enBuyuk = Math.max(1, ...toplamlar);
+    [3, 2, 1, 0].forEach(i => {
+      const s = ekle("div", "rapor-sutun" + (i === 0 ? " bu" : ""));
+      s.appendChild(ekle("span", "", i === 0 ? "Bu hafta" : i + " hafta önce"));
+      const c = ekle("span", "cubuk-yatay"); c.style.width = Math.round(toplamlar[i] / enBuyuk * 100) + "%";
+      s.appendChild(c); s.appendChild(ekle("b", "", String(toplamlar[i])));
+      b4.appendChild(s);
+    });
+    b4.setAttribute("role", "img");
+    b4.setAttribute("aria-label", "Son 4 hafta dokunuş: " + [3, 2, 1, 0].map(i => (i === 0 ? "bu hafta " : i + " hafta önce ") + toplamlar[i]).join(", "));
+    kutu.appendChild(b4);
+  }
+  function raporKapat() { onayRapor.classList.add("gizli"); }
+  document.getElementById("rapor-ac").addEventListener("click", () => { raporYaz(); onayRapor.classList.remove("gizli"); document.getElementById("rapor-kapat").focus(); });
+  document.getElementById("rapor-kapat").addEventListener("click", raporKapat);
+  onayRapor.addEventListener("click", e => { if (e.target === onayRapor) raporKapat(); });
+  document.addEventListener("keydown", e => { if (e.key === "Escape" && !onayRapor.classList.contains("gizli")) raporKapat(); });
 
   // Sürüm denetimi (Android): Başlatıcı köprüsü (0.3.0-cafer.32+) kurulu tr.cafer.* sürüm kodlarını
   // vitrine #surumler=paket:kod,… ile geri gönderir; kod surum.json'daki "kod"dan küçükse kart eski sayılır.
@@ -1135,7 +1320,7 @@
       const liste = document.getElementById(g);
       [...liste.children].sort((a, b) => a.dataset.sira - b.dataset.sira).forEach(k => liste.appendChild(k));
     });
-    try { localStorage.removeItem(GUN_ANAHTAR); } catch (e) {}
+    try { localStorage.removeItem(GUN_ANAHTAR); localStorage.removeItem(DILIM_ANAHTAR); } catch (e) {}
     ozetYaz();
     siraKapat();
     siraDurum();
