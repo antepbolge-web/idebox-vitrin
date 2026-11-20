@@ -1714,6 +1714,20 @@
       try { t.start(); } catch (e) { durdur(); goster("Mikrofon başlatılamadı", false, 3000); }
     });
   })();
+  // Uzun basma kısayolları (?git=fikir | ses | rapor): ilgili pencere açılır, adres temizlenir.
+  (function kisayolGit() {
+    let git = null;
+    try { git = new URLSearchParams(location.search).get("git"); } catch (e) {}
+    if (!git) return;
+    try { history.replaceState(null, "", location.pathname); } catch (e) {}
+    if (git === "fikir") fikirAc();
+    else if (git === "rapor") document.getElementById("rapor-ac").click();
+    else if (git === "ses") {
+      const ses = document.getElementById("ses");
+      if (ses.classList.contains("gizli")) { ara.focus(); return; } // ses tanıma yoksa yazarak arama
+      setTimeout(() => ses.click(), 300);
+    }
+  })();
   document.getElementById("say-toplam").textContent = UYGULAMALAR.length;
   const son = UYGULAMALAR.map(u => u.tarih).sort().pop();
   document.getElementById("say-son").textContent = tarihYaz(son).slice(0, 5);

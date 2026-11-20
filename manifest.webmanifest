@@ -30,12 +30,39 @@
   ],
   "shortcuts": [
     {
-      "name": "Telefon",
-      "short_name": "Telefon",
-      "url": "./?ac=Telefon",
+      "name": "Fikir yaz",
+      "short_name": "Fikir",
+      "description": "Fikir kutusunu aç",
+      "url": "./?git=fikir",
       "icons": [
         {
-          "src": "simgeler/telefon-256.png",
+          "src": "simgeler/kisayol-fikir.png",
+          "sizes": "256x256",
+          "type": "image/png"
+        }
+      ]
+    },
+    {
+      "name": "Sesle aç",
+      "short_name": "Sesle aç",
+      "description": "Uygulamayı sesle bul ve aç",
+      "url": "./?git=ses",
+      "icons": [
+        {
+          "src": "simgeler/kisayol-ses.png",
+          "sizes": "256x256",
+          "type": "image/png"
+        }
+      ]
+    },
+    {
+      "name": "Haftalık rapor",
+      "short_name": "Rapor",
+      "description": "Son 7 günün raporu",
+      "url": "./?git=rapor",
+      "icons": [
+        {
+          "src": "simgeler/kisayol-rapor.png",
           "sizes": "256x256",
           "type": "image/png"
         }
@@ -48,18 +75,6 @@
       "icons": [
         {
           "src": "simgeler/vakit.png",
-          "sizes": "256x256",
-          "type": "image/png"
-        }
-      ]
-    },
-    {
-      "name": "Defter",
-      "short_name": "Defter",
-      "url": "./?ac=Defter",
-      "icons": [
-        {
-          "src": "simgeler/notlar.png",
           "sizes": "256x256",
           "type": "image/png"
         }
