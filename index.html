@@ -150,6 +150,28 @@
     border: 1px solid var(--ayrac); border-radius: 22px; padding: 24px 20px 20px; box-shadow: var(--golge);
   }
   .onay-kutu p { margin: 0 0 20px; font-size: 22px; font-weight: 700; line-height: 1.3; }
+  /* Haftalık rapor */
+  .rapor-ac {
+    display: block; width: 100%; margin-top: 10px; min-height: 52px; border-radius: 16px;
+    border: 1px solid var(--ayrac); background: var(--kart); color: var(--turkuaz);
+    font: inherit; font-size: 18px; font-weight: 700; cursor: pointer;
+  }
+  .rapor-kutu { max-height: calc(100vh - 40px); overflow-y: auto; }
+  .rapor-kutu #rapor-baslik { margin-bottom: 4px; }
+  .rapor-aralik { font-size: 16px; color: var(--soluk); margin-bottom: 14px; }
+  .rapor-blok { margin: 0 0 16px; }
+  .rapor-blok h4 { margin: 0 0 6px; font-size: 17px; color: var(--soluk); font-weight: 600; }
+  .rapor-buyuk { font-size: 22px; font-weight: 800; }
+  .rapor-degisim { font-size: 17px; font-weight: 700; margin-left: 6px; }
+  .rapor-degisim.artis { color: #1f9d55; } .rapor-degisim.azalis { color: #e8711a; }
+  .rapor-liste { margin: 0; padding: 0; list-style: none; font-size: 18px; }
+  .rapor-liste li { display: flex; justify-content: space-between; gap: 10px; padding: 6px 0; border-bottom: 1px solid var(--ayrac); }
+  .rapor-liste li:last-child { border-bottom: 0; }
+  .rapor-sutun { display: grid; grid-template-columns: 7.5em 1fr 2.5em; align-items: center; gap: 8px; margin: 6px 0; font-size: 16px; }
+  .rapor-sutun .cubuk-yatay { height: 14px; border-radius: 0 4px 4px 0; background: color-mix(in srgb, var(--turkuaz) 38%, transparent); min-width: 2px; }
+  .rapor-sutun.bu .cubuk-yatay { background: var(--turkuaz); }
+  .rapor-sutun b { text-align: right; }
+  .rapor-sessiz { font-size: 17px; color: var(--soluk); line-height: 1.5; }
   .onay-dugmeler { display: flex; gap: 12px; }
   .onay-dugmeler button {
     flex: 1; min-height: 56px; border-radius: 16px; font: inherit; font-size: 18px; font-weight: 700; cursor: pointer;
@@ -365,6 +387,7 @@
       </span>
       <span class="hafta" id="hafta" role="img" aria-label="Son 7 gün"></span>
     </button>
+    <button id="rapor-ac" class="rapor-ac" type="button">📊 Haftalık rapor</button>
     <button id="surum-denetle" class="surum-denetle gizli" type="button">
       <span class="sd-bas" id="sd-bas">🔄 Sürümleri denetle</span>
       <span class="sd-alt" id="sd-alt">Telefondaki uygulamaların güncel olup olmadığına bakar.</span>
@@ -411,6 +434,14 @@
       <button type="button" id="onay-vazgec">Vazgeç</button>
       <button type="button" id="onay-evet">Evet, sıfırla</button>
     </div>
+  </div>
+</div>
+
+<div class="onay gizli" id="onay-rapor" role="dialog" aria-modal="true" aria-labelledby="rapor-baslik">
+  <div class="onay-kutu rapor-kutu">
+    <p id="rapor-baslik">📊 Haftalık rapor</p>
+    <div id="rapor-icerik"></div>
+    <div class="onay-dugmeler"><button type="button" id="rapor-kapat">Tamam</button></div>
   </div>
 </div>
 
@@ -1136,6 +1167,76 @@
     try { history.replaceState(null, "", location.pathname); } catch (e) {}
     iceAc("Uygulama açılamadı.", ad + " açılamadı. Cafer Başlatıcı'nın son sürümü (0.3.0-cafer.31 ya da sonrası) kurulu olmalı.", false);
   })();
+
+  // Haftalık rapor: son 7 gün (bu hafta) ile önceki 7 gün, en çok kullanılan 3 uygulama,
+  // 4 haftadır hiç açılmayanlar ve 4 haftalık toplam. Kaynak: vitrin-gun (35 gün tutulur).
+  const onayRapor = document.getElementById("onay-rapor");
+  function haftaToplam(kayit, kac) { // kac: 0 = bu hafta (bugün dahil son 7 gün), 1 = önceki 7 gün …
+    const say = {};
+    for (let i = kac * 7; i < kac * 7 + 7; i++) {
+      const d = new Date(); d.setDate(d.getDate() - i);
+      const g = kayit[bugunTarih(d)] || {};
+      Object.keys(g).forEach(a => { say[a] = (say[a] || 0) + (Number(g[a]) || 0); });
+    }
+    return say;
+  }
+  function raporYaz() {
+    const kayit = gunOku();
+    const haftalar = [0, 1, 2, 3].map(i => haftaToplam(kayit, i));
+    const toplamlar = haftalar.map(h => Object.values(h).reduce((t, n) => t + n, 0));
+    const bas = new Date(); bas.setDate(bas.getDate() - 6);
+    const kutu = document.getElementById("rapor-icerik");
+    kutu.innerHTML = "";
+    const ekle = (etiket, sinif, metin) => { const e = document.createElement(etiket); if (sinif) e.className = sinif; if (metin !== undefined) e.textContent = metin; return e; };
+    kutu.appendChild(ekle("div", "rapor-aralik", tarihYaz(bugunTarih(bas)).slice(0, 5) + " – " + tarihYaz(bugunTarih()).slice(0, 5) + " (son 7 gün)"));
+    if (!toplamlar.some(n => n > 0)) {
+      kutu.appendChild(ekle("div", "rapor-sessiz", "Henüz yeterli kayıt yok. Kartlara dokundukça rapor dolacak."));
+      return;
+    }
+    // Toplam ve değişim
+    const b1 = ekle("div", "rapor-blok"); b1.appendChild(ekle("h4", "", "Bu hafta toplam"));
+    const satir = ekle("div"); satir.appendChild(ekle("span", "rapor-buyuk", toplamlar[0] + " dokunuş"));
+    if (toplamlar[1] > 0) {
+      const fark = Math.round((toplamlar[0] - toplamlar[1]) / toplamlar[1] * 100);
+      satir.appendChild(ekle("span", "rapor-degisim " + (fark >= 0 ? "artis" : "azalis"), (fark >= 0 ? "▲ %" : "▼ %") + Math.abs(fark)));
+      b1.appendChild(satir); b1.appendChild(ekle("div", "rapor-sessiz", "Geçen hafta: " + toplamlar[1] + " dokunuş"));
+    } else { b1.appendChild(satir); b1.appendChild(ekle("div", "rapor-sessiz", "Geçen haftanın kaydı yok.")); }
+    kutu.appendChild(b1);
+    // En çok kullanılan 3
+    const enCok = Object.keys(haftalar[0]).filter(a => haftalar[0][a] > 0).sort((a, b) => haftalar[0][b] - haftalar[0][a]).slice(0, 3);
+    if (enCok.length) {
+      const b2 = ekle("div", "rapor-blok"); b2.appendChild(ekle("h4", "", "En çok kullanılanlar"));
+      const ul = ekle("ul", "rapor-liste");
+      enCok.forEach((a, i) => { const li = ekle("li"); li.appendChild(ekle("span", "", ["🥇", "🥈", "🥉"][i] + " " + a)); li.appendChild(ekle("b", "", String(haftalar[0][a]))); ul.appendChild(li); });
+      b2.appendChild(ul); kutu.appendChild(b2);
+    }
+    // 4 haftadır hiç açılmayanlar (yalnız telefonda açılabilen uygulamalar)
+    const kullanilan = new Set(); haftalar.forEach(h => Object.keys(h).forEach(a => { if (h[a] > 0) kullanilan.add(a); }));
+    const hic = UYGULAMALAR.filter(u => u.yer !== "Bilgisayar" && !kullanilan.has(u.ad)).map(u => u.ad);
+    if (hic.length) {
+      const b3 = ekle("div", "rapor-blok"); b3.appendChild(ekle("h4", "", "4 haftadır hiç açılmayanlar (" + hic.length + ")"));
+      b3.appendChild(ekle("div", "rapor-sessiz", hic.join(", ")));
+      kutu.appendChild(b3);
+    }
+    // 4 haftalık yatay çubuklar: en eski üstte
+    const b4 = ekle("div", "rapor-blok"); b4.appendChild(ekle("h4", "", "Son 4 hafta"));
+    const enBuyuk = Math.max(1, ...toplamlar);
+    [3, 2, 1, 0].forEach(i => {
+      const s = ekle("div", "rapor-sutun" + (i === 0 ? " bu" : ""));
+      s.appendChild(ekle("span", "", i === 0 ? "Bu hafta" : i + " hafta önce"));
+      const c = ekle("span", "cubuk-yatay"); c.style.width = Math.round(toplamlar[i] / enBuyuk * 100) + "%";
+      s.appendChild(c); s.appendChild(ekle("b", "", String(toplamlar[i])));
+      b4.appendChild(s);
+    });
+    b4.setAttribute("role", "img");
+    b4.setAttribute("aria-label", "Son 4 hafta dokunuş: " + [3, 2, 1, 0].map(i => (i === 0 ? "bu hafta " : i + " hafta önce ") + toplamlar[i]).join(", "));
+    kutu.appendChild(b4);
+  }
+  function raporKapat() { onayRapor.classList.add("gizli"); }
+  document.getElementById("rapor-ac").addEventListener("click", () => { raporYaz(); onayRapor.classList.remove("gizli"); document.getElementById("rapor-kapat").focus(); });
+  document.getElementById("rapor-kapat").addEventListener("click", raporKapat);
+  onayRapor.addEventListener("click", e => { if (e.target === onayRapor) raporKapat(); });
+  document.addEventListener("keydown", e => { if (e.key === "Escape" && !onayRapor.classList.contains("gizli")) raporKapat(); });
 
   // Sürüm denetimi (Android): Başlatıcı köprüsü (0.3.0-cafer.32+) kurulu tr.cafer.* sürüm kodlarını
   // vitrine #surumler=paket:kod,… ile geri gönderir; kod surum.json'daki "kod"dan küçükse kart eski sayılır.
