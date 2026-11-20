@@ -477,6 +477,36 @@
   // whatsapp: okunmamış WhatsApp mesaj sayısı (elle yazılır; 0 ise rozet görünmez, 99'dan büyükse "99+").
   // simge: simgeler/ altındaki dosya; ekran: ekranlar/ altındaki görüntüler (ör. ["alarm-1.jpg"]).
   const ANDROID = /Android/i.test(navigator.userAgent);
+  // Akıllı arama: uygulama başına anahtar kelimeler (ad ve açıklamaya ek). Ad değişirse buradaki anahtar da güncellenmeli.
+  // Adı ANAHTAR değil: kartYap içindeki WhatsApp anahtarı (const ANAHTAR) onu gölgeliyordu.
+  const ANAHTAR_KELIMELER = {"Telefon": "arama rehber kişi numara çağrı engelle", "Speed Dial": "hızlı arama favori kişi tek dokunuş", "Kim Arıyor": "arayan numara spam dolandırıcı uyarı", "Vakit": "namaz ezan imsak iftar takvim kuran sure", "Mektubat": "imam rabbani mektup tasavvuf kitap okuma", "Defter": "not yazı günlük tutanak", "Çeviri": "tercüme ingilizce sözlük dil", "Merkez": "prompt yapay zeka ai claude site haber", "Kıble": "pusula yön namaz mihrap güneş", "Kilit": "kilit ekranı ekran kilidi güvenlik parola", "Alarmlar": "alarm saat uyandırma zamanlayıcı kronometre", "Hava": "hava durumu yağmur sıcaklık derece", "Saatler": "widget saat dünya saati ana ekran vakit", "Spotlight": "arama bul hesap makinesi vikipedi sözlük", "PDF Araç": "pdf belge tarama imza birleştir böl", "Depolama": "temizlik yer aç hafıza çöp büyük dosya", "Dosyalar": "dosya klasör indirilenler belge", "Galeri": "fotoğraf resim albüm video", "Rötuş": "fotoğraf düzenleme filtre ışık renk", "Güncelle": "güncelleme yeni sürüm apk", "Başlatıcı": "ana ekran launcher masaüstü simge", "Adım": "adım sayar yürüyüş sağlık spor", "Şeker Defteri": "şeker diyabet kan şekeri insülin sensör glukoz", "Daily English": "ingilizce kelime sınav dil öğren", "Fişmatik": "fiş harcama fatura gider para", "Masaüstü Widget": "bilgisayar masaüstü saat vakit widget"};
+  // Türkçe harf farklarını yok sayan küçük harfli biçim: "Kıble" → "kible", "Şeker" → "seker".
+  function duzle(m) {
+    return String(m).toLocaleLowerCase("tr").replace(/ı/g, "i").replace(/ş/g, "s").replace(/ğ/g, "g")
+      .replace(/ü/g, "u").replace(/ö/g, "o").replace(/ç/g, "c").replace(/[âà]/g, "a").replace(/[îì]/g, "i").replace(/[ûù]/g, "u")
+      .replace(/[^a-z0-9 ]+/g, " ").replace(/\s+/g, " ").trim();
+  }
+  // Harflerin sırayla geçmesi (yazım hatası affı): "sekr" → "seker", "kble" → "kible".
+  function sirayla(kisa, uzun) {
+    if (!uzun || kisa[0] !== uzun[0] || uzun.length - kisa.length > 2) return false;
+    let i = 0; for (const h of uzun) if (h === kisa[i]) i++;
+    return i === kisa.length;
+  }
+  // Eşleşme puanı (küçük = daha iyi), eşleşmezse -1. Her kelime ayrı ayrı eşleşmeli.
+  function aramaPuani(k, q) {
+    let en = 0;
+    for (const t of q.split(" ")) {
+      let p = -1;
+      if (k.dataset.adn.startsWith(t) || k.dataset.adn.split(" ").some(w => w.startsWith(t))) p = 0;
+      else if (k.dataset.adn.includes(t)) p = 1;
+      else if (k.dataset.anahtar.split(" ").some(w => w.startsWith(t))) p = 2;
+      else if (k.dataset.ara.includes(t)) p = 4;
+      else if (t.length >= 3 && (k.dataset.adn.split(" ").some(w => sirayla(t, w)) || k.dataset.anahtar.split(" ").some(w => sirayla(t, w)))) p = 3;
+      if (p < 0) return -1;
+      en = Math.max(en, p);
+    }
+    return en;
+  }
   // Köprü Başlatıcı'nın kendisini açmaz; Başlatıcı'nın paketi yalnızca sürüm denetimi için tutulur.
   function acilabilir(u) { return ANDROID && !!u.paket && u.paket !== "tr.cafer.baslatici"; }
   const UYGULAMALAR = [
@@ -705,7 +735,10 @@
       });
       el.querySelector(".etiketler").after(ac);
     }
-    el.dataset.ara = [u.ad, u.aciklama, u.yenilik || "", u.yer].join(" ").toLocaleLowerCase("tr");
+    el.dataset.adn = duzle(u.ad);
+    el.dataset.anahtar = duzle(ANAHTAR_KELIMELER[u.ad] || "");
+    // Cihaz etiketi (yer) aramaya katılmaz: süzgeç düğmeleri onu zaten ayırıyor ("tel" yazınca her kart çıkmasın).
+    el.dataset.ara = duzle([u.ad, ANAHTAR_KELIMELER[u.ad] || "", u.aciklama, u.yenilik || ""].join(" "));
     if (yeniMi(u.tarih)) {
       const y = document.createElement("span");
       y.className = "etiket yeni";
@@ -1334,7 +1367,7 @@
   let secili = "hepsi";
   function suz(s) {
     if (s) secili = s;
-    const q = ara.value.trim().toLocaleLowerCase("tr");
+    const q = duzle(ara.value);
     document.querySelectorAll(".suzgec button").forEach(b => b.setAttribute("aria-pressed", b.dataset.s === secili));
     let toplam = 0;
     ["favori", "ana", "yardimci"].forEach(g => {
@@ -1342,8 +1375,11 @@
       let gorunen = 0;
       [...kartlar].forEach(k => {
         const yer = k.querySelector(".yer").textContent;
-        const uyar = (secili === "hepsi" || yer.includes(secili)) && (!q || k.dataset.ara.includes(q));
+        const puan = q ? aramaPuani(k, q) : 0;
+        const uyar = (secili === "hepsi" || yer.includes(secili)) && puan >= 0;
         k.classList.toggle("gizli", !uyar);
+        // Aramada en iyi eşleşme öne gelir (CSS order); arama boşken özgün sıra.
+        k.style.order = q && uyar ? String(puan) : "";
         if (uyar) gorunen++;
       });
       document.getElementById("b-" + g).classList.toggle("gizli", gorunen === 0);
@@ -1386,6 +1422,19 @@
     }, true));
   });
   ara.addEventListener("input", () => suz());
+  // Klavyedeki Ara/Git: ilk sonuç (favoriler, ana, yardımcı sırasıyla; aramadaki sıraya göre) açılır.
+  ara.addEventListener("keydown", e => {
+    if (e.key !== "Enter" || !duzle(ara.value)) return;
+    e.preventDefault();
+    let ilk = null;
+    for (const g of ["favori", "ana", "yardimci"]) {
+      const gorunen = [...document.getElementById(g).children].filter(k => !k.classList.contains("gizli"));
+      gorunen.sort((a, b) => (Number(a.style.order) || 0) - (Number(b.style.order) || 0));
+      if (gorunen.length) { ilk = gorunen[0]; break; }
+    }
+    ara.blur();
+    if (ilk && ilk.izgaraAc) ilk.izgaraAc();
+  });
   document.getElementById("say-toplam").textContent = UYGULAMALAR.length;
   const son = UYGULAMALAR.map(u => u.tarih).sort().pop();
   document.getElementById("say-son").textContent = tarihYaz(son).slice(0, 5);
