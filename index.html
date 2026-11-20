@@ -254,6 +254,17 @@
   body.izgara .yildiz { display: none; }
   body.izgara .kart > div:nth-child(2) { padding-right: 0; }
 
+  /* "Şu saatlerde": o dilimde en çok kullanılan 4 uygulama, küçük simgeler (her iki görünümde) */
+  .simdi { display: grid; grid-template-columns: repeat(4, 1fr); gap: 6px; }
+  .simdi:empty { display: none; }
+  .simdi-oge {
+    display: flex; flex-direction: column; align-items: center; gap: 6px; min-width: 0; padding: 6px 2px;
+    background: none; border: 0; color: inherit; font: inherit; cursor: pointer;
+  }
+  .simdi-oge .simge { flex: 0 0 auto; width: 56px; height: 56px; border-radius: 15px; box-shadow: var(--golge); pointer-events: none; }
+  .simdi-oge span { width: 100%; font-size: 15px; font-weight: 600; line-height: 1.25; text-align: center; overflow-wrap: anywhere;
+    display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+
   /* Izgara görünümü: kartlar ana ekran gibi simge + ad olur (telefonda 4'lü, çok dar ekranda 3'lü) */
   body.izgara .liste { grid-template-columns: repeat(auto-fill, minmax(76px, 1fr)); gap: 18px 6px; }
   body.izgara .kart {
@@ -371,6 +382,9 @@
 
   <h2 id="b-favori" class="gizli">★ Favoriler</h2>
   <div class="liste" id="favori"></div>
+
+  <h2 id="b-simdi" class="gizli"></h2>
+  <div class="simdi" id="simdi"></div>
 
   <h2 id="b-ana">Ana uygulamalar</h2>
   <div class="liste" id="ana"></div>
@@ -768,8 +782,43 @@
     hafta.setAttribute("aria-label", "Son 7 gün dokunuş sayısı: " + gunler.map(g => (g.bugun ? "bugün" : g.ad) + " " + g.toplam).join(", "));
   }
 
+  // "Şu saatlerde": şimdiki dilimde son 5 haftada en çok kullanılan 4 uygulama (favoriler hariç).
+  // Dilimde en az 5 dokunuş birikmeden gösterilmez.
+  function simdiYaz() {
+    const dilim = dilimAdi();
+    const toplam = {};
+    Object.values(dilimOku()).forEach(g => {
+      const d = g && g[dilim];
+      if (d && typeof d === "object") Object.keys(d).forEach(a => { toplam[a] = (toplam[a] || 0) + (Number(d[a]) || 0); });
+    });
+    const hepsi = Object.values(toplam).reduce((t, n) => t + n, 0);
+    const favoriler = favoriOku();
+    const secilen = Object.keys(toplam).filter(a => toplam[a] > 0 && !favoriler.includes(a) && kartBul(a))
+      .sort((a, b) => toplam[b] - toplam[a]).slice(0, 4);
+    const kutu = document.getElementById("simdi"), baslik = document.getElementById("b-simdi");
+    kutu.innerHTML = "";
+    const goster = hepsi >= 5 && secilen.length > 0;
+    baslik.classList.toggle("gizli", !goster);
+    if (!goster) return;
+    baslik.textContent = DILIMLER[dilim] + " sık kullandıklarınız";
+    secilen.forEach(ad => {
+      const kart = kartBul(ad);
+      const b = document.createElement("button");
+      b.type = "button"; b.className = "simdi-oge";
+      b.setAttribute("aria-label", ad + (ANDROID && kart.izgaraAc ? " uygulamasını aç" : " kartına git"));
+      const simge = kart.querySelector(".simge").cloneNode(true);
+      simge.classList.remove("sayac"); simge.removeAttribute("role"); simge.removeAttribute("tabindex"); simge.removeAttribute("aria-label");
+      simge.setAttribute("aria-hidden", "true");
+      const yazi = document.createElement("span"); yazi.textContent = ad;
+      b.append(simge, yazi);
+      b.addEventListener("click", () => kart.izgaraAc());
+      kutu.appendChild(b);
+    });
+  }
+
   function ozetYaz() {
     haftaYaz();
+    if (typeof FAVORI_HAZIR !== "undefined") simdiYaz();
     const gun = gunOku()[bugunTarih()] || {};
     const adlar = Object.keys(gun).filter(a => Number(gun[a]) > 0);
     const bas = document.getElementById("gunluk-bas"), alt = document.getElementById("gunluk-alt");
@@ -807,6 +856,7 @@
 
   // Favoriler: en fazla 4 uygulama, sayfanın en üstünde ayrı bölümde; seçim sırası korunur (vitrin-favori).
   const FAVORI_EN_COK = 4;
+  var FAVORI_HAZIR = true; // ozetYaz, favori bilgisi hazır olmadan "Şu saatlerde"yi çizmesin (var: TDZ'siz denetlenebilir)
   function favoriOku() {
     try {
       const v = JSON.parse(localStorage.getItem("vitrin-favori") || "[]");
@@ -833,6 +883,7 @@
       yildizYaz(k, false);
     });
     favoriler.forEach(ad => { const k = kartBul(ad); if (k) { kutu.appendChild(k); yildizYaz(k, true); } });
+    simdiYaz();
     // Açılışta arama kutusu henüz tanımlı değil (TDZ): yalnızca başlık güncellenir; sonrasında süzgeç yeniden uygulanır.
     if (ilk) document.getElementById("b-favori").classList.toggle("gizli", !kutu.children.length);
     else suz();
