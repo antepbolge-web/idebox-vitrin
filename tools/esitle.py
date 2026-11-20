@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """ideabox Vitrin'i cm deposundaki surum.json ile eşitler.
 
-Yalnızca kartların `surum`, `tarih` ve `yenilik` alanlarına dokunur; sayfanın geri kalanı değişmez.
+Yalnızca kartların `surum`, `kod` (sürüm kodu), `tarih` ve `yenilik` alanlarına dokunur; sayfanın geri kalanı değişmez.
 Kartlar paket adıyla (yoksa adla) eşleşir. Vitrinde olmayan yeni uygulamalar ve ad değişiklikleri
 eklenmez, yalnızca raporlanır (ad değişikliği sayaç taşıma gerektirir: index.html ESKI_ADLAR).
 Değişiklik olursa sw.js önbellek sürümü bir artırılır.
@@ -79,6 +79,19 @@ def main():
         yeni_surum = re.sub(r"-telefon\.\d+$", "", str(kayit.get("surum", "")))
         eski_surum = alan(govde, "surum")
         yeni_not = js(str(kayit.get("yenilik", "")))
+        yeni_kod = str(kayit.get("code", "")) if str(kayit.get("code", "")).isdigit() else ""
+        eski_kod = re.search(r"kod: (\d+)", govde)
+        eski_kod = eski_kod.group(1) if eski_kod else ""
+        if yeni_kod and yeni_kod != eski_kod:
+            # sürüm kodu "Sürümleri denetle" karşılaştırması içindir; yoksa surum alanının ardına eklenir
+            if eski_kod:
+                govde = govde.replace(f"kod: {eski_kod}", f"kod: {yeni_kod}", 1)
+            else:
+                govde = govde.replace(f'surum: "{eski_surum}",', f'surum: "{eski_surum}", kod: {yeni_kod},', 1)
+            if yeni_surum == eski_surum and yeni_not == eski_not:
+                degisen += 1
+                rapor.append(f"{jsdan(ad)}: sürüm kodu {eski_kod or '-'} -> {yeni_kod}")
+                return m.group(0)[: m.start("govde") - m.start(0)] + govde + m.group(0)[m.end("govde") - m.start(0):]
         if not yeni_surum or (yeni_surum == eski_surum and yeni_not == eski_not):
             return m.group(0)
         if yeni_surum != eski_surum:
