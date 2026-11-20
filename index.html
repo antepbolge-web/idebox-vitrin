@@ -707,16 +707,35 @@
       return v && typeof v === "object" && !Array.isArray(v) ? v : {};
     } catch (e) { return {}; }
   }
+  // Kayıtlar 5 hafta (35 gün) tutulur: 7 günlük grafik ve 4 haftalık rapor buradan okunur.
+  const KAYIT_GUN = 35;
+  function enEskiTarih() { const d = new Date(); d.setDate(d.getDate() - (KAYIT_GUN - 1)); return bugunTarih(d); }
+  // Günün dört dilimi; "Şu saatlerde" önerisi bu dilimlerin kaydından çıkar (vitrin-dilim: { tarih: { dilim: { uygulama: sayı } } }).
+  const DILIM_ANAHTAR = "vitrin-dilim";
+  const DILIMLER = { sabah: "🌅 Sabah", ogle: "☀️ Öğle", aksam: "🌇 Akşam", gece: "🌙 Gece" };
+  function dilimAdi(d) {
+    const s = (d || new Date()).getHours();
+    return s >= 5 && s < 11 ? "sabah" : s >= 11 && s < 16 ? "ogle" : s >= 16 && s < 21 ? "aksam" : "gece";
+  }
+  function dilimOku() {
+    try { const v = JSON.parse(localStorage.getItem(DILIM_ANAHTAR) || "{}"); return v && typeof v === "object" && !Array.isArray(v) ? v : {}; } catch (e) { return {}; }
+  }
   function gunKaydet(ad) {
     const kayit = gunOku();
     const bugun = bugunTarih();
     const gun = kayit[bugun] && typeof kayit[bugun] === "object" ? kayit[bugun] : {};
     gun[ad] = (Number(gun[ad]) || 0) + 1;
     kayit[bugun] = gun;
-    const sinir = new Date(); sinir.setDate(sinir.getDate() - 6);
-    const enEski = bugunTarih(sinir);
+    const enEski = enEskiTarih();
     Object.keys(kayit).forEach(t => { if (t < enEski) delete kayit[t]; });
     try { localStorage.setItem(GUN_ANAHTAR, JSON.stringify(kayit)); } catch (e) {}
+    const dk = dilimOku(), dilim = dilimAdi();
+    const dg = dk[bugun] && typeof dk[bugun] === "object" ? dk[bugun] : {};
+    const dd = dg[dilim] && typeof dg[dilim] === "object" ? dg[dilim] : {};
+    dd[ad] = (Number(dd[ad]) || 0) + 1;
+    dg[dilim] = dd; dk[bugun] = dg;
+    Object.keys(dk).forEach(t => { if (t < enEski) delete dk[t]; });
+    try { localStorage.setItem(DILIM_ANAHTAR, JSON.stringify(dk)); } catch (e) {}
     ozetYaz();
   }
 
@@ -919,7 +938,7 @@
 
   // Sayaçları dışa aktar: WhatsApp, kullanım ve son 7 gün tek bir JSON dosyasına yazılır.
   function sayacVerisi() {
-    const veri = { uygulama: "ideabox-vitrin", bicim: 1, tarih: new Date().toISOString(), whatsapp: {}, kullanim: {}, gunluk: gunOku(), favoriler: favoriOku() };
+    const veri = { uygulama: "ideabox-vitrin", bicim: 1, tarih: new Date().toISOString(), whatsapp: {}, kullanim: {}, gunluk: gunOku(), dilim: dilimOku(), favoriler: favoriOku() };
     try {
       for (let i = 0; i < localStorage.length; i++) {
         const k = localStorage.key(i);
@@ -979,14 +998,27 @@
       const k = v[t] && typeof v[t] === "object" ? v[t] : {};
       Object.keys(k).forEach(eski => { const ad = guncelAd(eski); if (adlar.has(ad) && sayi(k[eski])) temiz[t][ad] = (temiz[t][ad] || 0) + sayi(k[eski]); });
     });
-    const sinir = new Date(); sinir.setDate(sinir.getDate() - 6);
-    const enEski = bugunTarih(sinir);
+    const enEski = enEskiTarih();
     const g = v.gunluk && typeof v.gunluk === "object" ? v.gunluk : {};
     Object.keys(g).forEach(t => {
       if (!/^\d{4}-\d{2}-\d{2}$/.test(t) || t < enEski || !g[t] || typeof g[t] !== "object") return;
       const gun = {};
       Object.keys(g[t]).forEach(eski => { const ad = guncelAd(eski); if (adlar.has(ad) && sayi(g[t][eski])) gun[ad] = (gun[ad] || 0) + sayi(g[t][eski]); });
       if (Object.keys(gun).length) temiz.gunluk[t] = gun;
+    });
+    temiz.dilim = {};
+    const dl = v.dilim && typeof v.dilim === "object" ? v.dilim : {};
+    Object.keys(dl).forEach(t => {
+      if (!/^\d{4}-\d{2}-\d{2}$/.test(t) || t < enEski || !dl[t] || typeof dl[t] !== "object") return;
+      const gun = {};
+      Object.keys(DILIMLER).forEach(d => {
+        const k = dl[t][d] && typeof dl[t][d] === "object" ? dl[t][d] : null;
+        if (!k) return;
+        const say = {};
+        Object.keys(k).forEach(eski => { const ad = guncelAd(eski); if (adlar.has(ad) && sayi(k[eski])) say[ad] = (say[ad] || 0) + sayi(k[eski]); });
+        if (Object.keys(say).length) gun[d] = say;
+      });
+      if (Object.keys(gun).length) temiz.dilim[t] = gun;
     });
     return temiz;
   }
@@ -1035,6 +1067,7 @@
       Object.keys(v.kullanim).forEach(ad => localStorage.setItem("vitrin-kul:" + ad, String(v.kullanim[ad])));
       localStorage.setItem(GUN_ANAHTAR, JSON.stringify(v.gunluk));
       localStorage.setItem("vitrin-favori", JSON.stringify(v.favoriler));
+      localStorage.setItem(DILIM_ANAHTAR, JSON.stringify(v.dilim));
     } catch (e) {
       iceAc("Sayılar kaydedilemedi.", "Telefonun depolama alanına yazılamadı.", false);
       return;
@@ -1135,7 +1168,7 @@
       const liste = document.getElementById(g);
       [...liste.children].sort((a, b) => a.dataset.sira - b.dataset.sira).forEach(k => liste.appendChild(k));
     });
-    try { localStorage.removeItem(GUN_ANAHTAR); } catch (e) {}
+    try { localStorage.removeItem(GUN_ANAHTAR); localStorage.removeItem(DILIM_ANAHTAR); } catch (e) {}
     ozetYaz();
     siraKapat();
     siraDurum();
