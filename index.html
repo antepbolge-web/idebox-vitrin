@@ -205,6 +205,15 @@
   }
 
   /* Süzgeç */
+  /* Arama kutusu ve görünüm düğmesi (Izgara / Liste) yan yana */
+  .ara-satir { display: flex; gap: 10px; align-items: stretch; margin-top: 20px; }
+  .ara-satir .ara { margin-top: 0; flex: 1 1 auto; min-width: 0; }
+  .gorunum {
+    flex: 0 0 auto; min-height: 52px; padding: 0 16px; border-radius: 16px;
+    border: 1px solid var(--ayrac); background: var(--kart); color: var(--turkuaz);
+    font: inherit; font-size: 17px; font-weight: 700; cursor: pointer; white-space: nowrap;
+  }
+  .gorunum[aria-pressed="true"] { background: var(--turkuaz); border-color: var(--turkuaz); color: #fff; }
   .suzgec {
     display: flex; gap: 8px; margin-top: 24px;
     background: var(--kart); border: 1px solid var(--ayrac); border-radius: 16px; padding: 4px;
@@ -233,6 +242,33 @@
   /* Kısayolla gelinen kart 2 saniye parlar */
   @keyframes parla { 0%, 100% { box-shadow: var(--golge); } 50% { box-shadow: 0 0 0 4px var(--turkuaz), 0 0 24px var(--turkuaz); } }
   .kart.parla { animation: parla 1s ease 2; }
+
+  /* Favori yıldızı: kartın sağ üst köşesinde, 44 px dokunma alanı */
+  .yildiz {
+    position: absolute; top: 6px; right: 6px; z-index: 2; width: 44px; height: 44px;
+    border: 0; border-radius: 12px; background: transparent; color: var(--soluk);
+    font-size: 26px; line-height: 1; cursor: pointer;
+  }
+  .yildiz[aria-pressed="true"] { color: var(--altin); }
+  .kart > div:nth-child(2) { padding-right: 34px; }
+  body.izgara .yildiz { display: none; }
+  body.izgara .kart > div:nth-child(2) { padding-right: 0; }
+
+  /* Izgara görünümü: kartlar ana ekran gibi simge + ad olur (telefonda 4'lü, çok dar ekranda 3'lü) */
+  body.izgara .liste { grid-template-columns: repeat(auto-fill, minmax(76px, 1fr)); gap: 18px 6px; }
+  body.izgara .kart {
+    flex-direction: column; align-items: center; gap: 8px; padding: 6px 2px;
+    background: none; border: 0; box-shadow: none; text-align: center; cursor: pointer;
+  }
+  body.izgara .kart > div:not(.simge) { width: 100%; min-width: 0; }
+  body.izgara .kart .simge { flex: 0 0 auto; width: 64px; height: 64px; border-radius: 17px; box-shadow: var(--golge); }
+  body.izgara .kart h3 {
+    font-size: 15px; font-weight: 600; line-height: 1.25;
+    display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; overflow-wrap: anywhere;
+  }
+  body.izgara .kart p, body.izgara .kart .etiketler, body.izgara .kart .ac-dugme { display: none; }
+  body.izgara .rozet { left: calc(50% + 40px); top: 0; min-width: 26px; height: 26px; font-size: 15px; padding: 0 6px; }
+  body.izgara .kart.parla { border-radius: 20px; }
   @media (prefers-reduced-motion: reduce) { .kart { animation: none; } }
 
   /* Ekran görüntüsü penceresi */
@@ -302,13 +338,19 @@
       </span>
       <span class="hafta" id="hafta" role="img" aria-label="Son 7 gün"></span>
     </button>
-    <input id="ara" class="ara" type="search" placeholder="Ara: ad ya da özellik" aria-label="Uygulama ara" autocomplete="off">
+    <div class="ara-satir">
+      <input id="ara" class="ara" type="search" placeholder="Ara: ad ya da özellik" aria-label="Uygulama ara" autocomplete="off">
+      <button id="gorunum" class="gorunum" type="button" aria-pressed="false">▦ Izgara</button>
+    </div>
     <div class="suzgec" role="group" aria-label="Süzgeç">
       <button data-s="hepsi" aria-pressed="true">Tümü</button>
       <button data-s="Telefon">Telefon</button>
       <button data-s="Bilgisayar">Bilgisayar</button>
     </div>
   </section>
+
+  <h2 id="b-favori" class="gizli">★ Favoriler</h2>
+  <div class="liste" id="favori"></div>
 
   <h2 id="b-ana">Ana uygulamalar</h2>
   <div class="liste" id="ana"></div>
@@ -568,6 +610,20 @@
       siraDurum();
     }
     el.addEventListener("click", kullanimSay);
+    const yildiz = document.createElement("button");
+    yildiz.type = "button";
+    yildiz.className = "yildiz";
+    yildiz.setAttribute("aria-pressed", "false");
+    yildiz.setAttribute("aria-label", u.ad + ": favorilere ekle");
+    yildiz.textContent = "☆";
+    yildiz.addEventListener("click", e => { e.stopPropagation(); favoriDegistir(el, u.ad); });
+    el.appendChild(yildiz);
+    // Izgarada dokunuş: Android'de paket varsa uygulamayı aç, yoksa listeye dön ve karta git.
+    el.izgaraAc = () => {
+      kullanimSay();
+      if (u.paket && ANDROID) uygulamaAc(u);
+      else { gorunumUygula(false); setTimeout(() => karteGit(el), 60); }
+    };
     // "Aç" düğmesi: paket adı olan uygulamalarda, yalnızca Android'de görünür.
     if (u.paket && ANDROID) {
       const ac = document.createElement("button");
@@ -704,7 +760,58 @@
     kart.dataset.sira = varsayilan.indexOf(u.ad);
     kart.style.animationDelay = (i * 40) + "ms";
     document.getElementById(u.grup).appendChild(kart);
+    kart.dataset.yuk = i;
+    kart.dataset.grup = u.grup;
   });
+
+  // Favoriler: en fazla 4 uygulama, sayfanın en üstünde ayrı bölümde; seçim sırası korunur (vitrin-favori).
+  const FAVORI_EN_COK = 4;
+  function favoriOku() {
+    try {
+      const v = JSON.parse(localStorage.getItem("vitrin-favori") || "[]");
+      return Array.isArray(v) ? [...new Set(v.map(a => guncelAd(String(a))))].slice(0, FAVORI_EN_COK) : [];
+    } catch (e) { return []; }
+  }
+  function favoriYaz(liste) { try { localStorage.setItem("vitrin-favori", JSON.stringify(liste)); } catch (e) {} }
+  function kartBul(ad) { return [...document.querySelectorAll(".kart")].find(k => k.querySelector("h3").textContent === ad); }
+  function yildizYaz(kart, acik) {
+    const y = kart.querySelector(".yildiz");
+    y.textContent = acik ? "★" : "☆";
+    y.setAttribute("aria-pressed", acik);
+    y.setAttribute("aria-label", kart.querySelector("h3").textContent + (acik ? ": favorilerden çıkar" : ": favorilere ekle"));
+  }
+  function favorileriYerlestir(ilk) {
+    const favoriler = favoriOku();
+    const kutu = document.getElementById("favori");
+    // favoride olmayanlar kendi grubuna, yükleme sırasına göre döner
+    [...kutu.children].forEach(k => {
+      if (favoriler.includes(k.querySelector("h3").textContent)) return;
+      const grup = document.getElementById(k.dataset.grup);
+      const sonraki = [...grup.children].find(x => Number(x.dataset.yuk) > Number(k.dataset.yuk));
+      grup.insertBefore(k, sonraki || null);
+      yildizYaz(k, false);
+    });
+    favoriler.forEach(ad => { const k = kartBul(ad); if (k) { kutu.appendChild(k); yildizYaz(k, true); } });
+    // Açılışta arama kutusu henüz tanımlı değil (TDZ): yalnızca başlık güncellenir; sonrasında süzgeç yeniden uygulanır.
+    if (ilk) document.getElementById("b-favori").classList.toggle("gizli", !kutu.children.length);
+    else suz();
+  }
+  function favoriDegistir(kart, ad) {
+    const favoriler = favoriOku();
+    const i = favoriler.indexOf(ad);
+    if (i >= 0) favoriler.splice(i, 1);
+    else {
+      if (favoriler.length >= FAVORI_EN_COK) {
+        iceAc("En fazla 4 favori seçilebilir.", "Yeni bir favori eklemek için önce birinin yıldızına dokunup çıkarın.", false);
+        return;
+      }
+      favoriler.push(ad);
+    }
+    favoriYaz(favoriler);
+    favorileriYerlestir();
+    if (navigator.vibrate) navigator.vibrate(20);
+  }
+  favorileriYerlestir(true);
 
   toplamYaz();
   ozetYaz();
@@ -790,7 +897,7 @@
 
   // Sayaçları dışa aktar: WhatsApp, kullanım ve son 7 gün tek bir JSON dosyasına yazılır.
   function sayacVerisi() {
-    const veri = { uygulama: "ideabox-vitrin", bicim: 1, tarih: new Date().toISOString(), whatsapp: {}, kullanim: {}, gunluk: gunOku() };
+    const veri = { uygulama: "ideabox-vitrin", bicim: 1, tarih: new Date().toISOString(), whatsapp: {}, kullanim: {}, gunluk: gunOku(), favoriler: favoriOku() };
     try {
       for (let i = 0; i < localStorage.length; i++) {
         const k = localStorage.key(i);
@@ -844,7 +951,8 @@
     try { v = JSON.parse(metin); } catch (e) { return null; }
     if (!v || typeof v !== "object" || v.uygulama !== "ideabox-vitrin") return null;
     const adlar = new Set(UYGULAMALAR.map(u => u.ad));
-    const temiz = { whatsapp: {}, kullanim: {}, gunluk: {}, tarih: typeof v.tarih === "string" ? v.tarih : "" };
+    const temiz = { whatsapp: {}, kullanim: {}, gunluk: {}, favoriler: [], tarih: typeof v.tarih === "string" ? v.tarih : "" };
+    if (Array.isArray(v.favoriler)) temiz.favoriler = [...new Set(v.favoriler.map(a => guncelAd(String(a))).filter(a => adlar.has(a)))].slice(0, FAVORI_EN_COK);
     ["whatsapp", "kullanim"].forEach(t => {
       const k = v[t] && typeof v[t] === "object" ? v[t] : {};
       Object.keys(k).forEach(eski => { const ad = guncelAd(eski); if (adlar.has(ad) && sayi(k[eski])) temiz[t][ad] = (temiz[t][ad] || 0) + sayi(k[eski]); });
@@ -904,6 +1012,7 @@
       Object.keys(v.whatsapp).forEach(ad => localStorage.setItem("vitrin-wa:" + ad, String(v.whatsapp[ad])));
       Object.keys(v.kullanim).forEach(ad => localStorage.setItem("vitrin-kul:" + ad, String(v.kullanim[ad])));
       localStorage.setItem(GUN_ANAHTAR, JSON.stringify(v.gunluk));
+      localStorage.setItem("vitrin-favori", JSON.stringify(v.favoriler));
     } catch (e) {
       iceAc("Sayılar kaydedilemedi.", "Telefonun depolama alanına yazılamadı.", false);
       return;
@@ -959,7 +1068,7 @@
     const q = ara.value.trim().toLocaleLowerCase("tr");
     document.querySelectorAll(".suzgec button").forEach(b => b.setAttribute("aria-pressed", b.dataset.s === secili));
     let toplam = 0;
-    ["ana", "yardimci"].forEach(g => {
+    ["favori", "ana", "yardimci"].forEach(g => {
       const kartlar = document.getElementById(g).children;
       let gorunen = 0;
       [...kartlar].forEach(k => {
@@ -974,6 +1083,39 @@
     document.getElementById("bos").classList.toggle("gizli", toplam > 0);
   }
   document.querySelectorAll(".suzgec button").forEach(b => b.addEventListener("click", () => suz(b.dataset.s)));
+
+  // Görünüm: liste ya da ızgara. Seçim bu telefonda hatırlanır (vitrin-gorunum).
+  const gorunumDugme = document.getElementById("gorunum");
+  function gorunumUygula(izgara) {
+    document.body.classList.toggle("izgara", izgara);
+    gorunumDugme.setAttribute("aria-pressed", izgara);
+    gorunumDugme.textContent = izgara ? "☰ Liste" : "▦ Izgara";
+    gorunumDugme.setAttribute("aria-label", izgara ? "Liste görünümüne geç" : "Izgara görünümüne geç");
+    try { localStorage.setItem("vitrin-gorunum", izgara ? "izgara" : "liste"); } catch (e) {}
+  }
+  let izgaraKayitli = false;
+  try { izgaraKayitli = localStorage.getItem("vitrin-gorunum") === "izgara"; } catch (e) {}
+  gorunumUygula(izgaraKayitli);
+  gorunumDugme.addEventListener("click", () => gorunumUygula(!document.body.classList.contains("izgara")));
+  // Izgarada kartın içindeki eski davranışlar (WhatsApp sayacı, uzun basmayla sıfırlama, ekran görüntüsü)
+  // çalışmasın: dokunuş yakalama aşamasında karşılanır ve yalnızca kartın ızgara eylemi çalışır.
+  ["favori", "ana", "yardimci"].forEach(g => {
+    const liste = document.getElementById(g);
+    liste.addEventListener("click", e => {
+      if (!document.body.classList.contains("izgara")) return;
+      const kart = e.target.closest(".kart");
+      if (!kart || !kart.izgaraAc) return;
+      e.stopPropagation(); e.preventDefault();
+      kart.izgaraAc();
+    }, true);
+    ["pointerdown", "keydown", "contextmenu"].forEach(olay => liste.addEventListener(olay, e => {
+      if (!document.body.classList.contains("izgara")) return;
+      if (olay === "keydown" && e.key !== "Enter" && e.key !== " ") return;
+      e.stopPropagation();
+      if (olay !== "pointerdown") e.preventDefault();
+      if (olay === "keydown") { const k = e.target.closest(".kart"); if (k && k.izgaraAc) k.izgaraAc(); }
+    }, true));
+  });
   ara.addEventListener("input", () => suz());
   document.getElementById("say-toplam").textContent = UYGULAMALAR.length;
   const son = UYGULAMALAR.map(u => u.tarih).sort().pop();
