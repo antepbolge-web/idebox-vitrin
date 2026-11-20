@@ -2,7 +2,7 @@
 <html lang="tr">
 <head>
 <meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, interactive-widget=resizes-content">
 <title>ideabox Vitrin</title>
 <meta name="description" content="Cafer Bey'in kendi uygulamalarının tek vitrini.">
 <meta name="robots" content="noindex, nofollow">
@@ -355,6 +355,21 @@
   .kart p.yenilik b { color: var(--altin); }
 
   footer { margin-top: 40px; text-align: center; color: var(--soluk); font-size: 16px; }
+
+  /* Tek el modu: telefonda arama ve görünüm düğmesi ekranın altındaki sabit çubukta (başparmak yetişsin).
+     Klavye açılınca çubuk klavyenin üstüne çıkar: Android'de interactive-widget=resizes-content,
+     iPhone'da visualViewport ile --klavye kaydırması (tekElCubuk). */
+  @media (max-width: 599px) {
+    .ara-satir {
+      position: fixed; left: 0; right: 0; bottom: 0; z-index: 20; margin: 0;
+      padding: 10px 16px calc(10px + env(safe-area-inset-bottom));
+      background: color-mix(in srgb, var(--bg) 88%, transparent);
+      -webkit-backdrop-filter: blur(14px); backdrop-filter: blur(14px);
+      border-top: 1px solid var(--ayrac); box-shadow: 0 -4px 18px rgba(0,0,0,.08);
+      transform: translateY(calc(-1 * var(--klavye, 0px)));
+    }
+    body { padding-bottom: calc(96px + env(safe-area-inset-bottom)); }
+  }
 </style>
 </head>
 <body>
@@ -1421,7 +1436,28 @@
       if (olay === "keydown") { const k = e.target.closest(".kart"); if (k && k.izgaraAc) k.izgaraAc(); }
     }, true));
   });
-  ara.addEventListener("input", () => suz());
+  ara.addEventListener("input", () => {
+    suz();
+    // Alttaki çubuktan aramaya başlanınca sonuçlar görünsün: sayfa bir kez süzgeç satırına kayar.
+    const doluMu = !!duzle(ara.value);
+    if (doluMu && !ara.dataset.kaydi && window.matchMedia("(max-width: 599px)").matches) {
+      ara.dataset.kaydi = "1";
+      const hedef = document.querySelector(".suzgec").getBoundingClientRect().top + window.scrollY - 90;
+      window.scrollTo({ top: Math.max(0, hedef), behavior: "smooth" });
+    }
+    if (!doluMu) delete ara.dataset.kaydi;
+  });
+  // iPhone Safari klavyesi sayfayı küçültmez: alt çubuğu klavye yüksekliği kadar yukarı al.
+  (function tekElCubuk() {
+    const vv = window.visualViewport;
+    if (!vv) return;
+    const ayarla = () => {
+      const fark = Math.max(0, window.innerHeight - vv.height - vv.offsetTop);
+      document.documentElement.style.setProperty("--klavye", fark > 40 ? fark + "px" : "0px");
+    };
+    vv.addEventListener("resize", ayarla);
+    vv.addEventListener("scroll", ayarla);
+  })();
   // Klavyedeki Ara/Git: ilk sonuç (favoriler, ana, yardımcı sırasıyla; aramadaki sıraya göre) açılır.
   ara.addEventListener("keydown", e => {
     if (e.key !== "Enter" || !duzle(ara.value)) return;
