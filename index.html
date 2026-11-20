@@ -172,6 +172,30 @@
   .rapor-sutun.bu .cubuk-yatay { background: var(--turkuaz); }
   .rapor-sutun b { text-align: right; }
   .rapor-sessiz { font-size: 17px; color: var(--soluk); line-height: 1.5; }
+  /* Fikir kutusu */
+  .fikir-kutu { max-height: calc(100vh - 40px); overflow-y: auto; }
+  .fikir-yaz {
+    display: block; width: 100%; min-height: 120px; padding: 12px 14px; border-radius: 16px; resize: vertical;
+    border: 1px solid var(--ayrac); background: var(--kart); color: var(--yazi); font: inherit; font-size: 19px; line-height: 1.4;
+  }
+  .fikir-yaz:focus { outline: 2px solid var(--turkuaz); outline-offset: 1px; }
+  .fikir-kaydet {
+    display: block; width: 100%; margin: 10px 0 18px; min-height: 56px; border-radius: 16px; cursor: pointer;
+    border: 2px solid var(--turkuaz); background: var(--turkuaz); color: #fff; font: inherit; font-size: 19px; font-weight: 700;
+  }
+  .fikir-kaydet:disabled { opacity: .45; cursor: default; }
+  .fikir-liste { margin: 0 0 16px; padding: 0; list-style: none; }
+  .fikir-liste li { padding: 12px 0; border-top: 1px solid var(--ayrac); }
+  .fikir-tarih { font-size: 15px; color: var(--soluk); }
+  .fikir-metin { margin: 4px 0 10px; font-size: 18px; line-height: 1.45; white-space: pre-wrap; overflow-wrap: anywhere; }
+  .fikir-dugmeler { display: flex; gap: 10px; }
+  .fikir-dugmeler button {
+    flex: 1; min-height: 48px; border-radius: 14px; border: 1px solid var(--ayrac); background: var(--kart);
+    color: var(--turkuaz); font: inherit; font-size: 17px; font-weight: 700; cursor: pointer;
+  }
+  .fikir-dugmeler button.sil { color: #e53935; }
+  .fikir-dugmeler button.sil.emin { background: #e53935; border-color: #e53935; color: #fff; }
+  .fikir-durum { min-height: 1.4em; margin: -8px 0 8px; font-size: 16px; color: var(--turkuaz); }
   .onay-dugmeler { display: flex; gap: 12px; }
   .onay-dugmeler button {
     flex: 1; min-height: 56px; border-radius: 16px; font: inherit; font-size: 18px; font-weight: 700; cursor: pointer;
@@ -236,6 +260,25 @@
     font: inherit; font-size: 17px; font-weight: 700; cursor: pointer; white-space: nowrap;
   }
   .gorunum[aria-pressed="true"] { background: var(--turkuaz); border-color: var(--turkuaz); color: #fff; }
+  /* Sesli açma: mikrofon düğmesi ve alttaki bilgi şeridi */
+  .ses {
+    flex: 0 0 52px; min-height: 52px; border-radius: 16px; border: 1px solid var(--ayrac);
+    background: var(--kart); font-size: 24px; cursor: pointer; padding: 0;
+  }
+  .ses.dinliyor { background: #e53935; border-color: #e53935; animation: ses-nabiz 1.1s ease-in-out infinite; }
+  .ses.cevrimdisi { opacity: .4; }
+  @keyframes ses-nabiz { 50% { box-shadow: 0 0 0 8px rgba(229,57,53,.25); } }
+  .ses-serit {
+    position: fixed; left: 50%; bottom: 24px; z-index: 25; transform: translateX(-50%);
+    width: calc(100% - 32px); max-width: 440px; display: flex; align-items: center; gap: 10px;
+    padding: 10px 10px 10px 16px; border-radius: 18px; background: var(--yazi); color: var(--bg);
+    font-size: 18px; font-weight: 600; box-shadow: var(--golge);
+  }
+  .ses-serit span { flex: 1; min-width: 0; overflow-wrap: anywhere; }
+  .ses-serit button {
+    flex: 0 0 auto; min-height: 48px; padding: 0 18px; border-radius: 14px; border: 0; cursor: pointer;
+    background: var(--altin); color: #fff; font: inherit; font-size: 17px; font-weight: 700;
+  }
   .suzgec {
     display: flex; gap: 8px; margin-top: 24px;
     background: var(--kart); border: 1px solid var(--ayrac); border-radius: 16px; padding: 4px;
@@ -369,6 +412,11 @@
       transform: translateY(calc(-1 * var(--klavye, 0px)));
     }
     body { padding-bottom: calc(96px + env(safe-area-inset-bottom)); }
+    .ses-serit { bottom: calc(84px + env(safe-area-inset-bottom) + var(--klavye, 0px)); }
+  }
+  @media (max-width: 359px) {
+    .gorunum { min-width: 52px; padding: 0 12px; font-size: 22px; }
+    .gorunum-yazi { display: none; }
   }
 </style>
 </head>
@@ -403,12 +451,14 @@
       <span class="hafta" id="hafta" role="img" aria-label="Son 7 gün"></span>
     </button>
     <button id="rapor-ac" class="rapor-ac" type="button">📊 Haftalık rapor</button>
+    <button id="fikir-ac" class="rapor-ac" type="button">💡 Fikir kutusu</button>
     <button id="surum-denetle" class="surum-denetle gizli" type="button">
       <span class="sd-bas" id="sd-bas">🔄 Sürümleri denetle</span>
       <span class="sd-alt" id="sd-alt">Telefondaki uygulamaların güncel olup olmadığına bakar.</span>
     </button>
     <div class="ara-satir">
       <input id="ara" class="ara" type="search" placeholder="Ara: ad ya da özellik" aria-label="Uygulama ara" autocomplete="off">
+      <button id="ses" class="ses gizli" type="button" aria-label="Sesle ara" title="Sesle ara">🎤</button>
       <button id="gorunum" class="gorunum" type="button" aria-pressed="false">▦ Izgara</button>
     </div>
     <div class="suzgec" role="group" aria-label="Süzgeç">
@@ -441,6 +491,7 @@
 
   <footer>ideabox · bilgiler cm/surum.json dosyasından</footer>
 </main>
+<div class="ses-serit gizli" id="ses-serit" role="status" aria-live="polite"><span id="ses-metin"></span><button type="button" id="ses-iptal" class="gizli">İptal</button></div>
 
 <div class="onay gizli" id="onay" role="alertdialog" aria-modal="true" aria-labelledby="onay-soru">
   <div class="onay-kutu">
@@ -457,6 +508,17 @@
     <p id="rapor-baslik">📊 Haftalık rapor</p>
     <div id="rapor-icerik"></div>
     <div class="onay-dugmeler"><button type="button" id="rapor-kapat">Tamam</button></div>
+  </div>
+</div>
+
+<div class="onay gizli" id="onay-fikir" role="dialog" aria-modal="true" aria-labelledby="fikir-baslik">
+  <div class="onay-kutu fikir-kutu">
+    <p id="fikir-baslik">💡 Fikir kutusu</p>
+    <textarea id="fikir-yaz" class="fikir-yaz" maxlength="2000" placeholder="Aklınıza geleni yazın…" aria-label="Yeni fikir"></textarea>
+    <button type="button" id="fikir-kaydet" class="fikir-kaydet" disabled>Kaydet</button>
+    <div class="fikir-durum" id="fikir-durum" aria-live="polite"></div>
+    <ul class="fikir-liste" id="fikir-liste"></ul>
+    <div class="onay-dugmeler"><button type="button" id="fikir-kapat">Kapat</button></div>
   </div>
 </div>
 
@@ -1068,7 +1130,7 @@
 
   // Sayaçları dışa aktar: WhatsApp, kullanım ve son 7 gün tek bir JSON dosyasına yazılır.
   function sayacVerisi() {
-    const veri = { uygulama: "ideabox-vitrin", bicim: 1, tarih: new Date().toISOString(), whatsapp: {}, kullanim: {}, gunluk: gunOku(), dilim: dilimOku(), favoriler: favoriOku() };
+    const veri = { uygulama: "ideabox-vitrin", bicim: 1, tarih: new Date().toISOString(), whatsapp: {}, kullanim: {}, gunluk: gunOku(), dilim: dilimOku(), favoriler: favoriOku(), fikirler: fikirOku() };
     try {
       for (let i = 0; i < localStorage.length; i++) {
         const k = localStorage.key(i);
@@ -1136,6 +1198,7 @@
       Object.keys(g[t]).forEach(eski => { const ad = guncelAd(eski); if (adlar.has(ad) && sayi(g[t][eski])) gun[ad] = (gun[ad] || 0) + sayi(g[t][eski]); });
       if (Object.keys(gun).length) temiz.gunluk[t] = gun;
     });
+    temiz.fikirler = fikirTemizle(v.fikirler);
     temiz.dilim = {};
     const dl = v.dilim && typeof v.dilim === "object" ? v.dilim : {};
     Object.keys(dl).forEach(t => {
@@ -1198,6 +1261,8 @@
       localStorage.setItem(GUN_ANAHTAR, JSON.stringify(v.gunluk));
       localStorage.setItem("vitrin-favori", JSON.stringify(v.favoriler));
       localStorage.setItem(DILIM_ANAHTAR, JSON.stringify(v.dilim));
+      // Fikirler silinmez: dosyadakiler bu cihazdakilere eklenir (aynı an ve metin bir kez).
+      fikirYaz(fikirOku().concat(v.fikirler));
     } catch (e) {
       iceAc("Sayılar kaydedilemedi.", "Telefonun depolama alanına yazılamadı.", false);
       return;
@@ -1285,6 +1350,103 @@
   document.getElementById("rapor-kapat").addEventListener("click", raporKapat);
   onayRapor.addEventListener("click", e => { if (e.target === onayRapor) raporKapat(); });
   document.addEventListener("keydown", e => { if (e.key === "Escape" && !onayRapor.classList.contains("gizli")) raporKapat(); });
+
+  // Fikir kutusu: fikirler yalnızca bu cihazda (vitrin-fikir) durur; dışa/içe aktarmayla taşınır.
+  // Her kayıt { t: ISO tarih, m: metin }. En yeni üstte, en çok 300 kayıt, metin en çok 2000 harf.
+  const FIKIR_ANAHTAR = "vitrin-fikir", FIKIR_TASLAK = "vitrin-fikir-taslak", FIKIR_EN_COK = 300;
+  function fikirTemizle(liste) {
+    if (!Array.isArray(liste)) return [];
+    const gorulen = new Set(), sonuc = [];
+    liste.forEach(f => {
+      if (!f || typeof f.m !== "string" || typeof f.t !== "string" || isNaN(new Date(f.t))) return;
+      const m = f.m.trim().slice(0, 2000), anahtar = f.t + "|" + m;
+      if (!m || gorulen.has(anahtar)) return;
+      gorulen.add(anahtar); sonuc.push({ t: f.t, m });
+    });
+    return sonuc.sort((a, b) => (a.t < b.t ? 1 : -1)).slice(0, FIKIR_EN_COK);
+  }
+  function fikirOku() { try { return fikirTemizle(JSON.parse(localStorage.getItem(FIKIR_ANAHTAR) || "[]")); } catch (e) { return []; } }
+  function fikirYaz(liste) { localStorage.setItem(FIKIR_ANAHTAR, JSON.stringify(fikirTemizle(liste))); }
+  const onayFikir = document.getElementById("onay-fikir");
+  const fikirAlan = document.getElementById("fikir-yaz");
+  const fikirKaydet = document.getElementById("fikir-kaydet");
+  const fikirDurum = document.getElementById("fikir-durum");
+  let fikirDurumZaman = 0;
+  function fikirBildir(metin) {
+    fikirDurum.textContent = metin;
+    clearTimeout(fikirDurumZaman);
+    fikirDurumZaman = setTimeout(() => { fikirDurum.textContent = ""; }, 2500);
+  }
+  function fikirSayac() {
+    const n = fikirOku().length;
+    document.getElementById("fikir-ac").textContent = "💡 Fikir kutusu" + (n ? " (" + n + ")" : "");
+  }
+  async function fikirPaylas(f) {
+    const metin = f.m + "\n— " + tarihYaz(bugunTarih(new Date(f.t))) + " " + new Date(f.t).toTimeString().slice(0, 5);
+    if (navigator.share) {
+      try { await navigator.share({ text: metin }); return; } catch (e) { if (e && e.name === "AbortError") return; }
+    }
+    try { await navigator.clipboard.writeText(metin); fikirBildir("📋 Panoya kopyalandı"); } catch (e) { fikirBildir("Paylaşılamadı"); }
+  }
+  function fikirListele() {
+    const ul = document.getElementById("fikir-liste");
+    ul.innerHTML = "";
+    fikirOku().forEach(f => {
+      const li = document.createElement("li");
+      const d = new Date(f.t);
+      const tarih = document.createElement("div"); tarih.className = "fikir-tarih";
+      tarih.textContent = tarihYaz(bugunTarih(d)) + " · " + d.toTimeString().slice(0, 5);
+      const m = document.createElement("div"); m.className = "fikir-metin"; m.textContent = f.m;
+      const dg = document.createElement("div"); dg.className = "fikir-dugmeler";
+      const pay = document.createElement("button"); pay.type = "button"; pay.textContent = "↗ Paylaş";
+      pay.addEventListener("click", () => fikirPaylas(f));
+      const sil = document.createElement("button"); sil.type = "button"; sil.className = "sil"; sil.textContent = "🗑 Sil";
+      let bekle = 0;
+      sil.addEventListener("click", () => {
+        // İlk dokunuş sorar, 3 saniye içindeki ikinci dokunuş siler (yanlışlıkla silmeye karşı).
+        if (!sil.classList.contains("emin")) {
+          sil.classList.add("emin"); sil.textContent = "Emin misiniz?";
+          bekle = setTimeout(() => { sil.classList.remove("emin"); sil.textContent = "🗑 Sil"; }, 3000);
+          return;
+        }
+        clearTimeout(bekle);
+        try { fikirYaz(fikirOku().filter(x => !(x.t === f.t && x.m === f.m))); } catch (e) { fikirBildir("Silinemedi"); return; }
+        fikirListele(); fikirSayac(); fikirBildir("Silindi");
+      });
+      dg.append(pay, sil);
+      li.append(tarih, m, dg);
+      ul.appendChild(li);
+    });
+  }
+  function fikirAc() {
+    try { fikirAlan.value = localStorage.getItem(FIKIR_TASLAK) || ""; } catch (e) {}
+    fikirKaydet.disabled = !fikirAlan.value.trim();
+    fikirDurum.textContent = "";
+    fikirListele();
+    onayFikir.classList.remove("gizli");
+    fikirAlan.focus();
+  }
+  function fikirKapat() { onayFikir.classList.add("gizli"); }
+  fikirAlan.addEventListener("input", () => {
+    fikirKaydet.disabled = !fikirAlan.value.trim();
+    try { localStorage.setItem(FIKIR_TASLAK, fikirAlan.value); } catch (e) {} // yarım kalan yazı kaybolmasın
+  });
+  fikirKaydet.addEventListener("click", () => {
+    const m = fikirAlan.value.trim();
+    if (!m) return;
+    try {
+      fikirYaz([{ t: new Date().toISOString(), m }].concat(fikirOku()));
+      localStorage.removeItem(FIKIR_TASLAK);
+    } catch (e) { fikirBildir("Kaydedilemedi: depolama dolu olabilir"); return; }
+    fikirAlan.value = ""; fikirKaydet.disabled = true;
+    fikirListele(); fikirSayac(); fikirBildir("✅ Kaydedildi");
+    if (navigator.vibrate) navigator.vibrate(30);
+  });
+  document.getElementById("fikir-ac").addEventListener("click", fikirAc);
+  document.getElementById("fikir-kapat").addEventListener("click", fikirKapat);
+  onayFikir.addEventListener("click", e => { if (e.target === onayFikir) fikirKapat(); });
+  document.addEventListener("keydown", e => { if (e.key === "Escape" && !onayFikir.classList.contains("gizli")) fikirKapat(); });
+  fikirSayac();
 
   // Sürüm denetimi (Android): Başlatıcı köprüsü (0.3.0-cafer.32+) kurulu tr.cafer.* sürüm kodlarını
   // vitrine #surumler=paket:kod,… ile geri gönderir; kod surum.json'daki "kod"dan küçükse kart eski sayılır.
@@ -1409,7 +1571,9 @@
   function gorunumUygula(izgara) {
     document.body.classList.toggle("izgara", izgara);
     gorunumDugme.setAttribute("aria-pressed", izgara);
-    gorunumDugme.textContent = izgara ? "☰ Liste" : "▦ Izgara";
+    // En dar ekranlarda (<360 px) yalnız simge görünür; ad ekran okuyucu için aria-label'da kalır.
+    gorunumDugme.innerHTML = izgara ? '☰<span class="gorunum-yazi"> Liste</span>' : '▦<span class="gorunum-yazi"> Izgara</span>';
+    gorunumDugme.setAttribute("aria-label", izgara ? "Liste görünümü" : "Izgara görünümü");
     gorunumDugme.setAttribute("aria-label", izgara ? "Liste görünümüne geç" : "Izgara görünümüne geç");
     try { localStorage.setItem("vitrin-gorunum", izgara ? "izgara" : "liste"); } catch (e) {}
   }
@@ -1471,6 +1635,85 @@
     ara.blur();
     if (ilk && ilk.izgaraAc) ilk.izgaraAc();
   });
+  // Sesli açma: Chrome'un ses tanıması (Türkçe) konuşmayı aramaya yazar. Tek ve net bir sonuç varsa
+  // (ya da söylenen tam bir uygulama adıysa) uygulama 1 saniye sonra açılır; bu sırada "İptal" görünür.
+  // Ses tanıma internet ister; çevrim dışıyken düğme soluk görünür ve uyarı verir.
+  (function sesliAcma() {
+    const Tanima = window.SpeechRecognition || window.webkitSpeechRecognition;
+    const dugme = document.getElementById("ses");
+    if (!Tanima) return; // desteklemeyen tarayıcıda düğme hiç görünmez
+    dugme.classList.remove("gizli");
+    const serit = document.getElementById("ses-serit"), seritMetin = document.getElementById("ses-metin"), iptal = document.getElementById("ses-iptal");
+    let tanima = null, acZaman = 0, gizleZaman = 0;
+    function goster(metin, iptalVar, sure) {
+      seritMetin.textContent = metin;
+      iptal.classList.toggle("gizli", !iptalVar);
+      serit.classList.remove("gizli");
+      clearTimeout(gizleZaman);
+      if (sure) gizleZaman = setTimeout(() => serit.classList.add("gizli"), sure);
+    }
+    function gizle() { clearTimeout(gizleZaman); serit.classList.add("gizli"); }
+    function acmayiDurdur() { if (acZaman) { clearTimeout(acZaman); acZaman = 0; gizle(); } }
+    iptal.addEventListener("click", () => { acmayiDurdur(); goster("Açma iptal edildi", false, 1500); });
+    ara.addEventListener("input", acmayiDurdur); // kullanıcı yazmaya başlarsa açılmaz
+    function cevrim() { dugme.classList.toggle("cevrimdisi", !navigator.onLine); }
+    window.addEventListener("online", cevrim); window.addEventListener("offline", cevrim); cevrim();
+    function gorunenKartlar() {
+      const liste = [];
+      ["favori", "ana", "yardimci"].forEach(g => [...document.getElementById(g).children].forEach(k => { if (!k.classList.contains("gizli")) liste.push(k); }));
+      return liste.sort((a, b) => (Number(a.style.order) || 0) - (Number(b.style.order) || 0));
+    }
+    function sonucuIsle(adaylar) {
+      // Sırayla dene: sonuç veren ilk duyulan cümle aramada kalır.
+      let kartlar = [], metin = adaylar[0] || "";
+      for (const a of adaylar) {
+        ara.value = a; suz(); kartlar = gorunenKartlar();
+        if (kartlar.length) { metin = a; break; }
+      }
+      ara.value = metin; suz(); kartlar = gorunenKartlar();
+      delete ara.dataset.kaydi;
+      ara.dispatchEvent(new Event("input")); // telefonda sonuçlara kaydır
+      if (!kartlar.length) { goster("“" + metin + "” için uygulama bulunamadı", false, 3000); return; }
+      const q = duzle(metin);
+      const tamAd = kartlar.filter(k => k.dataset.adn === q);
+      const hedef = kartlar.length === 1 ? kartlar[0] : (tamAd.length === 1 ? tamAd[0] : null);
+      if (!hedef || !hedef.izgaraAc) { goster(kartlar.length + " sonuç bulundu, birini seçin", false, 2500); return; }
+      const ad = hedef.querySelector("h3") ? hedef.querySelector("h3").textContent : "Uygulama";
+      goster("▶ " + ad + " açılıyor…", true, 0);
+      if (navigator.vibrate) navigator.vibrate(30);
+      acZaman = setTimeout(() => { acZaman = 0; gizle(); hedef.izgaraAc(); }, 1000);
+    }
+    function durdur() { if (tanima) { try { tanima.abort(); } catch (e) {} tanima = null; } dugme.classList.remove("dinliyor"); }
+    dugme.addEventListener("click", () => {
+      if (tanima) { durdur(); gizle(); return; } // ikinci dokunuş dinlemeyi bitirir
+      acmayiDurdur();
+      if (!navigator.onLine) { goster("Sesli arama için internet gerekli", false, 3000); return; }
+      const t = new Tanima();
+      t.lang = "tr-TR"; t.interimResults = true; t.maxAlternatives = 3; t.continuous = false;
+      let bitti = false;
+      t.onresult = e => {
+        const r = e.results[e.results.length - 1];
+        if (!r.isFinal) { ara.value = r[0].transcript; suz(); return; } // konuşurken arama canlı dolar
+        bitti = true;
+        const adaylar = [...r].map(x => String(x.transcript || "").trim()).filter(Boolean);
+        durdur();
+        sonucuIsle(adaylar);
+      };
+      t.onerror = e => {
+        durdur();
+        const neden = { "not-allowed": "Mikrofon izni verilmedi. Chrome ayarlarından izin verin.", "service-not-allowed": "Mikrofon izni verilmedi. Chrome ayarlarından izin verin.",
+          "network": "Sesli arama için internet gerekli", "no-speech": "Ses duyulmadı, tekrar deneyin", "audio-capture": "Mikrofon bulunamadı", "aborted": "" }[e.error];
+        if (neden === "") return;
+        goster(neden || "Ses anlaşılamadı, tekrar deneyin", false, 3500);
+        bitti = true;
+      };
+      t.onend = () => { const b = bitti; durdur(); if (!b) goster("Ses duyulmadı, tekrar deneyin", false, 2500); };
+      tanima = t;
+      dugme.classList.add("dinliyor");
+      goster("🎤 Dinliyorum… uygulamanın adını söyleyin", false, 0);
+      try { t.start(); } catch (e) { durdur(); goster("Mikrofon başlatılamadı", false, 3000); }
+    });
+  })();
   document.getElementById("say-toplam").textContent = UYGULAMALAR.length;
   const son = UYGULAMALAR.map(u => u.tarih).sort().pop();
   document.getElementById("say-son").textContent = tarihYaz(son).slice(0, 5);
