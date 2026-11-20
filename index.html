@@ -414,6 +414,10 @@
     body { padding-bottom: calc(96px + env(safe-area-inset-bottom)); }
     .ses-serit { bottom: calc(84px + env(safe-area-inset-bottom) + var(--klavye, 0px)); }
   }
+  @media (max-width: 359px) {
+    .gorunum { min-width: 52px; padding: 0 12px; font-size: 22px; }
+    .gorunum-yazi { display: none; }
+  }
 </style>
 </head>
 <body>
@@ -1567,7 +1571,9 @@
   function gorunumUygula(izgara) {
     document.body.classList.toggle("izgara", izgara);
     gorunumDugme.setAttribute("aria-pressed", izgara);
-    gorunumDugme.textContent = izgara ? "☰ Liste" : "▦ Izgara";
+    // En dar ekranlarda (<360 px) yalnız simge görünür; ad ekran okuyucu için aria-label'da kalır.
+    gorunumDugme.innerHTML = izgara ? '☰<span class="gorunum-yazi"> Liste</span>' : '▦<span class="gorunum-yazi"> Izgara</span>';
+    gorunumDugme.setAttribute("aria-label", izgara ? "Liste görünümü" : "Izgara görünümü");
     gorunumDugme.setAttribute("aria-label", izgara ? "Liste görünümüne geç" : "Izgara görünümüne geç");
     try { localStorage.setItem("vitrin-gorunum", izgara ? "izgara" : "liste"); } catch (e) {}
   }
