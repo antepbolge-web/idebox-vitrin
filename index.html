@@ -82,6 +82,30 @@
   }
   .tema button[aria-pressed="true"] { background: var(--turkuaz); color: #fff; font-weight: 600; }
 
+  /* Araçlar satırı: Rapor · Fikir · Sürüm · Ayarlar (simge + kısa ad, rozet köşede) */
+  .araclar { display: flex; gap: 10px; margin-top: 12px; }
+  .arac {
+    position: relative; flex: 1 1 0; min-width: 0; min-height: 76px; padding: 8px 4px; border-radius: 18px; cursor: pointer;
+    display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px;
+    border: 1px solid var(--ayrac); background: var(--kart); color: var(--yazi); box-shadow: var(--golge); font: inherit;
+  }
+  .arac:active { background: var(--turkuaz-acik); }
+  .arac-simge { font-size: 28px; line-height: 1; }
+  .arac-ad { font-size: 16px; font-weight: 700; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 100%; }
+  .arac-rozet {
+    position: absolute; top: 6px; right: 8px; min-width: 24px; height: 24px; padding: 0 6px; border-radius: 12px;
+    background: var(--turkuaz); color: #fff; font-size: 14px; font-weight: 800; line-height: 24px; text-align: center;
+  }
+  @media (max-width: 359px) { .araclar { gap: 6px; } .arac-ad { font-size: 14px; } .arac-rozet { right: 4px; } }
+  .arac.uyari { border-color: #e8711a; }
+  .arac.uyari .arac-rozet { background: #e8711a; }
+  .ayar-kutu { max-height: calc(100vh - 40px); overflow-y: auto; }
+  .ayar-kutu .tema { margin-bottom: 18px; }
+  .ayar-kutu .tema button { flex: 1; min-height: 52px; font-size: 18px; }
+  .ayar-bolum { margin: 0 0 10px; font-size: 17px; color: var(--soluk); font-weight: 600; }
+  .ayar-not { font-size: 16px !important; font-weight: 400 !important; color: var(--soluk); margin: 16px 0 !important; }
+  .ayar-not:empty { display: none; }
+
   /* Giriş */
   .giris { padding: 28px 4px 8px; }
   .giris h1 { margin: 0 0 8px; font-size: 34px; line-height: 1.2; letter-spacing: -.5px; }
@@ -101,8 +125,20 @@
     background: var(--kart); border: 1px solid var(--ayrac); border-left: 6px solid var(--turkuaz);
     border-radius: 18px; box-shadow: var(--golge); color: inherit; font: inherit; text-align: left;
   }
-  .gunluk { flex-direction: column; align-items: stretch; }
-  .gunluk .gunluk-satir { display: flex; align-items: center; gap: 14px; }
+  .gunluk { flex-direction: column; align-items: stretch; padding: 0; }
+  .gunluk .gunluk-satir {
+    display: flex; align-items: center; gap: 12px; width: 100%; min-height: 56px; padding: 8px 16px;
+    border: 0; background: transparent; color: inherit; font: inherit; text-align: left; cursor: pointer;
+  }
+  .gunluk .gunluk-metin { flex: 1 1 auto; }
+  .gunluk-ok { flex: 0 0 auto; font-size: 20px; color: var(--soluk); transition: transform .2s; }
+  .gunluk:not(.kapali) .gunluk-ok { transform: rotate(180deg); }
+  .gunluk.kapali .gunluk-detay { display: none; }
+  .gunluk-detay { padding: 0 16px 14px; }
+  .gunluk-git {
+    display: block; width: 100%; margin-top: 12px; min-height: 48px; border-radius: 14px; cursor: pointer;
+    border: 1px solid var(--ayrac); background: var(--bg); color: var(--turkuaz); font: inherit; font-size: 17px; font-weight: 700;
+  }
   /* 7 günlük mini grafik: tek seri, sütunlar tabandan, uçları 4px yuvarlak */
   .hafta { display: flex; gap: 6px; margin-top: 0; padding-top: 10px; border-top: 1px solid var(--ayrac); }
   .hafta .gun { flex: 1 1 0; display: flex; flex-direction: column; align-items: center; min-width: 0; }
@@ -115,11 +151,11 @@
   .hafta .gun.bugun { flex-grow: 1.45; } /* "Bugün" etiketi dar ekranda da sığsın */
   @media (max-width: 359px) { .hafta { gap: 3px; } .hafta .gunad { font-size: 14px; } }
   .hafta .bugun .deger, .hafta .bugun .gunad { color: inherit; font-weight: 700; }
-  .gunluk .gunluk-simge { font-size: 30px; line-height: 1; flex: 0 0 auto; }
+  .gunluk .gunluk-simge { font-size: 26px; line-height: 1; flex: 0 0 auto; }
   .gunluk .gunluk-metin { min-width: 0; }
-  .gunluk .gunluk-bas { display: block; font-size: 20px; font-weight: 700; line-height: 1.3; }
+  .gunluk .gunluk-bas { display: block; font-size: 18px; font-weight: 700; line-height: 1.3; }
   .gunluk .gunluk-bas b { color: var(--turkuaz); }
-  .gunluk .gunluk-alt { display: block; margin-top: 2px; font-size: 17px; color: var(--soluk); }
+  .gunluk .gunluk-alt { display: block; margin: 0 0 8px; font-size: 17px; color: var(--soluk); }
   .ozet .okunmamis-bilgi { flex: 0 1 auto; min-width: 0; background: none; border: 0; border-radius: 0; padding: 0; box-shadow: none; }
   .sifirla {
     min-height: 52px; padding: 0 20px; border-radius: 14px;
@@ -129,7 +165,7 @@
   .sifirla:active:not(:disabled) { background: #e53935; color: #fff; }
   .sifirla:disabled { opacity: .35; cursor: default; }
   /* Sayfa altındaki "Sıralamayı sıfırla": seyrek kullanılır, sakin görünür */
-  .sira-sifirla-alan { margin-top: 40px; display: flex; flex-direction: column; align-items: center; gap: 12px; }
+  .sira-sifirla-alan { margin-top: 0; display: flex; flex-direction: column; align-items: center; gap: 12px; }
   .sira-sifirla {
     min-height: 56px; width: 100%; max-width: 420px; padding: 0 20px; border-radius: 16px;
     border: 2px solid var(--turkuaz); background: transparent; color: var(--turkuaz);
@@ -376,15 +412,7 @@
   }
   .etiket.surum { background: var(--altin-acik); font-weight: 600; }
   .etiket.guncelle { background: #e8711a; color: #fff; font-weight: 700; }
-  /* "Sürümleri denetle" kartı (yalnız Android) ve eski sürüm işaretleri */
-  .surum-denetle {
-    display: block; width: 100%; margin-top: 12px; padding: 14px 18px; text-align: left;
-    background: var(--kart); border: 1px solid var(--ayrac); border-left: 6px solid var(--turkuaz);
-    border-radius: 18px; box-shadow: var(--golge); color: inherit; font: inherit; cursor: pointer;
-  }
-  .surum-denetle.uyari { border-left-color: #e8711a; }
-  .surum-denetle .sd-bas { display: block; font-size: 19px; font-weight: 700; }
-  .surum-denetle .sd-alt { display: block; margin-top: 2px; font-size: 16px; color: var(--soluk); }
+  /* Eski sürüm işaretleri (Sürüm denetimi araçlar satırında) */
   .indir-dugme {
     display: block; margin-top: 10px; min-height: 52px; line-height: 52px; border-radius: 14px; text-align: center;
     background: #e8711a; color: #fff; font-size: 18px; font-weight: 700; text-decoration: none;
@@ -424,11 +452,6 @@
 <body>
 <header class="ust">
   <div class="logo"><b>idea</b><i>box</i></div>
-  <div class="tema" role="group" aria-label="Görünüm">
-    <button data-t="system">Sistem</button>
-    <button data-t="light">Açık</button>
-    <button data-t="dark">Koyu</button>
-  </div>
 </header>
 
 <main class="sayfa">
@@ -444,19 +467,24 @@
         <button id="rozet-izin" class="izin gizli" type="button">Simge rozetini aç</button>
       </div>
     </div>
-    <button id="gunluk" class="gunluk" type="button">
-      <span class="gunluk-satir">
+    <div id="gunluk" class="gunluk kapali">
+      <button id="gunluk-ac" class="gunluk-satir" type="button" aria-expanded="false" aria-controls="gunluk-detay">
         <span class="gunluk-simge" aria-hidden="true">☀️</span>
-        <span class="gunluk-metin" aria-live="polite"><span class="gunluk-bas" id="gunluk-bas">Bugün</span><span class="gunluk-alt" id="gunluk-alt"></span></span>
-      </span>
-      <span class="hafta" id="hafta" role="img" aria-label="Son 7 gün"></span>
-    </button>
-    <button id="rapor-ac" class="rapor-ac" type="button">📊 Haftalık rapor</button>
-    <button id="fikir-ac" class="rapor-ac" type="button">💡 Fikir kutusu</button>
-    <button id="surum-denetle" class="surum-denetle gizli" type="button">
-      <span class="sd-bas" id="sd-bas">🔄 Sürümleri denetle</span>
-      <span class="sd-alt" id="sd-alt">Telefondaki uygulamaların güncel olup olmadığına bakar.</span>
-    </button>
+        <span class="gunluk-metin" aria-live="polite"><span class="gunluk-bas" id="gunluk-bas">Bugün</span></span>
+        <span class="gunluk-ok" aria-hidden="true">▾</span>
+      </button>
+      <div class="gunluk-detay" id="gunluk-detay">
+        <span class="gunluk-alt" id="gunluk-alt"></span>
+        <span class="hafta" id="hafta" role="img" aria-label="Son 7 gün"></span>
+        <button id="gunluk-git" class="gunluk-git gizli" type="button"></button>
+      </div>
+    </div>
+    <div class="araclar" role="group" aria-label="Araçlar">
+      <button id="rapor-ac" class="arac" type="button" aria-label="Haftalık rapor"><span class="arac-simge" aria-hidden="true">📊</span><span class="arac-ad">Rapor</span></button>
+      <button id="fikir-ac" class="arac" type="button" aria-label="Fikir kutusu"><span class="arac-simge" aria-hidden="true">💡</span><span class="arac-ad">Fikir</span><span class="arac-rozet gizli" id="fikir-rozet"></span></button>
+      <button id="surum-denetle" class="arac gizli" type="button" aria-label="Sürümleri denetle"><span class="arac-simge" aria-hidden="true">🔄</span><span class="arac-ad" id="sd-ad">Sürüm</span><span class="arac-rozet gizli" id="sd-rozet"></span></button>
+      <button id="ayarlar-ac" class="arac" type="button" aria-label="Ayarlar"><span class="arac-simge" aria-hidden="true">⚙️</span><span class="arac-ad">Ayarlar</span></button>
+    </div>
     <div class="ara-satir">
       <input id="ara" class="ara" type="search" placeholder="Ara: ad ya da özellik" aria-label="Uygulama ara" autocomplete="off">
       <button id="ses" class="ses gizli" type="button" aria-label="Sesle ara" title="Sesle ara">🎤</button>
@@ -485,15 +513,30 @@
 
   <p class="bos gizli" id="bos">Aramaya uyan uygulama yok.</p>
 
-  <div class="sira-sifirla-alan">
-    <button id="disa-aktar" class="sira-sifirla" type="button">⬆ Sayaçları dışa aktar</button>
-    <button id="ice-aktar" class="sira-sifirla" type="button">⬇ Sayaçları içe aktar</button>
-    <input id="ice-dosya" type="file" accept=".json,.txt,application/json,text/plain" hidden>
-    <button id="sira-sifirla" class="sira-sifirla" type="button" disabled>↺ Sıralamayı sıfırla</button>
-  </div>
 
   <footer>ideabox · bilgiler cm/surum.json dosyasından</footer>
 </main>
+
+<div class="onay gizli" id="onay-ayar" role="dialog" aria-modal="true" aria-labelledby="ayar-baslik">
+  <div class="onay-kutu ayar-kutu">
+    <p id="ayar-baslik">⚙️ Ayarlar</p>
+    <h4 class="ayar-bolum">Görünüm</h4>
+    <div class="tema" role="group" aria-label="Görünüm">
+      <button data-t="system">Sistem</button>
+      <button data-t="light">Açık</button>
+      <button data-t="dark">Koyu</button>
+    </div>
+    <h4 class="ayar-bolum">Yedek ve taşıma</h4>
+    <div class="sira-sifirla-alan">
+      <button id="disa-aktar" class="sira-sifirla" type="button">⬆ Sayaçları ve fikirleri dışa aktar</button>
+      <button id="ice-aktar" class="sira-sifirla" type="button">⬇ İçe aktar</button>
+      <input id="ice-dosya" type="file" accept=".json,.txt,application/json,text/plain" hidden>
+      <button id="sira-sifirla" class="sira-sifirla" type="button" disabled>↺ Sıralamayı sıfırla</button>
+    </div>
+    <p class="ayar-not" id="sd-not"></p>
+    <div class="onay-dugmeler"><button type="button" id="ayar-kapat">Kapat</button></div>
+  </div>
+</div>
 <div class="ses-serit gizli" id="ses-serit" role="status" aria-live="polite"><span id="ses-metin"></span><button type="button" id="ses-iptal" class="gizli">İptal</button></div>
 
 <div class="onay gizli" id="onay" role="alertdialog" aria-modal="true" aria-labelledby="onay-soru">
@@ -980,18 +1023,23 @@
     const adlar = Object.keys(gun).filter(a => Number(gun[a]) > 0);
     const bas = document.getElementById("gunluk-bas"), alt = document.getElementById("gunluk-alt");
     const kart = document.getElementById("gunluk");
+    const git = document.getElementById("gunluk-git");
     if (!adlar.length) {
-      bas.textContent = "Bugün henüz bir uygulama açılmadı.";
-      alt.textContent = "Bir karta dokununca burada görünür.";
+      bas.textContent = "Bugün henüz uygulama açılmadı";
+      alt.textContent = "Bir karta dokununca burada görünür. Son 7 gün:";
       kart.dataset.en = "";
+      git.classList.add("gizli");
       return;
     }
     const en = adlar.reduce((a, b) => (Number(gun[b]) > Number(gun[a]) ? b : a));
     const toplam = adlar.reduce((t, a) => t + Number(gun[a]), 0);
-    bas.innerHTML = "Bugün en çok: <b></b>";
-    bas.querySelector("b").textContent = en + " (" + gun[en] + ")";
-    alt.textContent = "Bugün toplam " + toplam + " dokunuş · " + adlar.length + " uygulama";
+    // Tek satır: "Bugün 12 dokunuş · en çok: Vakit"; ayrıntı ve grafik dokununca açılır.
+    bas.innerHTML = "Bugün " + toplam + " dokunuş · en çok: <b></b>";
+    bas.querySelector("b").textContent = en;
+    alt.textContent = adlar.length + " uygulama açıldı · " + en + " " + gun[en] + " kez. Son 7 gün:";
     kart.dataset.en = en;
+    git.textContent = "→ " + en + " kartına git";
+    git.classList.remove("gizli");
   }
 
   // Akıllı sıralama: en çok dokunulan uygulama grubunun en üstünde.
@@ -1077,7 +1125,20 @@
   }
 
   // Günlük özet kartına dokununca: arama/süzgeç temizlenir, bugünün en çok kullanılanına gidilir.
-  document.getElementById("gunluk").addEventListener("click", () => {
+  // Bugün kartı: dokununca 7 günlük grafik açılır/kapanır; seçim bu telefonda hatırlanır (vitrin-gunluk-acik).
+  (function gunlukAcKapa() {
+    const kart = document.getElementById("gunluk"), dugme = document.getElementById("gunluk-ac");
+    const uygula = acik => { kart.classList.toggle("kapali", !acik); dugme.setAttribute("aria-expanded", acik); };
+    let acik = false;
+    try { acik = localStorage.getItem("vitrin-gunluk-acik") === "1"; } catch (e) {}
+    uygula(acik);
+    dugme.addEventListener("click", () => {
+      acik = kart.classList.contains("kapali");
+      uygula(acik);
+      try { localStorage.setItem("vitrin-gunluk-acik", acik ? "1" : "0"); } catch (e) {}
+    });
+  })();
+  document.getElementById("gunluk-git").addEventListener("click", () => {
     const ad = document.getElementById("gunluk").dataset.en;
     if (!ad) return;
     const kart = [...document.querySelectorAll(".kart")].find(k => k.querySelector("h3").textContent === ad);
@@ -1395,7 +1456,10 @@
   }
   function fikirSayac() {
     const n = fikirOku().length;
-    document.getElementById("fikir-ac").textContent = "💡 Fikir kutusu" + (n ? " (" + n + ")" : "");
+    const rozet = document.getElementById("fikir-rozet");
+    rozet.textContent = n > 99 ? "99+" : String(n);
+    rozet.classList.toggle("gizli", !n);
+    document.getElementById("fikir-ac").setAttribute("aria-label", "Fikir kutusu" + (n ? ", " + n + " fikir" : ""));
   }
   async function fikirPaylas(f) {
     const metin = f.m + "\n— " + tarihYaz(bugunTarih(new Date(f.t))) + " " + new Date(f.t).toTimeString().slice(0, 5);
@@ -1499,8 +1563,13 @@
     sdKart.classList.toggle("uyari", eski > 0);
     let zaman = "";
     try { const z = localStorage.getItem("vitrin-denetim"); if (z) { const d = new Date(z); zaman = tarihYaz(bugunTarih(d)).slice(0, 5) + " " + String(d.getHours()).padStart(2, "0") + ":" + String(d.getMinutes()).padStart(2, "0"); } } catch (e) {}
-    document.getElementById("sd-bas").textContent = !kurulu ? "🔄 Sürümleri denetle" : eski ? "⬆ " + eski + " uygulama güncellenmeli" : "✅ Bütün uygulamalar güncel";
-    document.getElementById("sd-alt").textContent = !kurulu ? "Telefondaki uygulamaların güncel olup olmadığına bakar." : "Son denetim: " + zaman + " · yeniden denetlemek için dokunun";
+    // Araçlar satırında kısa durum (rozet: eski sayısı ya da ✓); ayrıntı Ayarlar penceresinde ve ekran okuyucuda.
+    const durum = !kurulu ? "Sürümleri denetle" : eski ? eski + " uygulama güncellenmeli" : "Bütün uygulamalar güncel";
+    const rozet = document.getElementById("sd-rozet");
+    rozet.textContent = eski ? String(eski) : "✓";
+    rozet.classList.toggle("gizli", !kurulu);
+    sdKart.setAttribute("aria-label", durum + (kurulu ? ". Son denetim " + zaman + ". Yeniden denetlemek için dokunun." : ""));
+    document.getElementById("sd-not").textContent = kurulu ? "🔄 Sürüm denetimi: " + durum.toLowerCase() + " · son denetim " + zaman : "";
   }
   (function surumleriAl() {
     const m = /^#surumler=([a-z0-9_.:,]*)$/.exec(location.hash || "");
@@ -1742,6 +1811,19 @@
       try { t.start(); } catch (e) { durdur(); goster("Mikrofon başlatılamadı", false, 3000); }
     });
   })();
+  // Ayarlar penceresi: tema, dışa/içe aktarma, sıralamayı sıfırlama ve son sürüm denetimi notu.
+  const onayAyar = document.getElementById("onay-ayar");
+  function ayarKapat() { onayAyar.classList.add("gizli"); }
+  document.getElementById("ayarlar-ac").addEventListener("click", () => { onayAyar.classList.remove("gizli"); document.getElementById("ayar-kapat").focus(); });
+  document.getElementById("ayar-kapat").addEventListener("click", ayarKapat);
+  onayAyar.addEventListener("click", e => { if (e.target === onayAyar) ayarKapat(); });
+  document.addEventListener("keydown", e => {
+    if (e.key !== "Escape" || onayAyar.classList.contains("gizli")) return;
+    // Üstte başka bir onay penceresi açıksa önce o kapanır
+    if ([...document.querySelectorAll(".onay")].some(o => o !== onayAyar && !o.classList.contains("gizli"))) return;
+    ayarKapat();
+  });
+
   // Komutlar (yazarak ya da sesle): "fikir" / "fikir kutusu" → fikir kutusu; arkasından gelen söz
   // ("fikir yarın ders notları", "fikir: …") kutuya yazılı gelir ("not" bilerek yok: "not defteri" Defter içindir), kullanıcı Kaydet'e basar.
   // "rapor" / "haftalık rapor" (+ "aç") → haftalık rapor. Uygulama adlarıyla çakışmaz (hiçbiri bu sözlerle başlamaz).
