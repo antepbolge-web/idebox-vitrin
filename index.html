@@ -13,7 +13,8 @@
 <style>
   :root {
     --bg: #f4f7f8;
-    --kart: rgba(255,255,255,.82);
+    --kart: #ffffff;
+    --hap: #ffffff;
     --yazi: #10202a;
     --soluk: #5b6b74;
     --ayrac: rgba(16,32,42,.10);
@@ -21,12 +22,13 @@
     --turkuaz-acik: #d6f2f1;
     --altin: #c9962b;
     --altin-acik: #f6ead0;
-    --golge: 0 6px 24px rgba(16,32,42,.08);
+    --golge: 0 1px 2px rgba(16,32,42,.04), 0 6px 18px rgba(16,32,42,.06);
   }
   @media (prefers-color-scheme: dark) {
     :root:not([data-theme="light"]) {
       --bg: #0b1420;
-      --kart: rgba(24,36,50,.82);
+      --kart: #16212e;
+      --hap: #2e3e52;
       --yazi: #eef4f6;
       --soluk: #9fb0ba;
       --ayrac: rgba(255,255,255,.10);
@@ -34,12 +36,13 @@
       --turkuaz-acik: rgba(44,201,196,.16);
       --altin: #e2b552;
       --altin-acik: rgba(226,181,82,.16);
-      --golge: 0 6px 24px rgba(0,0,0,.35);
+      --golge: 0 1px 2px rgba(0,0,0,.3), 0 6px 18px rgba(0,0,0,.25);
     }
   }
   :root[data-theme="dark"] {
     --bg: #0b1420;
-    --kart: rgba(24,36,50,.82);
+    --kart: #16212e;
+    --hap: #2e3e52;
     --yazi: #eef4f6;
     --soluk: #9fb0ba;
     --ayrac: rgba(255,255,255,.10);
@@ -47,7 +50,7 @@
     --turkuaz-acik: rgba(44,201,196,.16);
     --altin: #e2b552;
     --altin-acik: rgba(226,181,82,.16);
-    --golge: 0 6px 24px rgba(0,0,0,.35);
+    --golge: 0 1px 2px rgba(0,0,0,.3), 0 6px 18px rgba(0,0,0,.25);
   }
 
   * { box-sizing: border-box; }
@@ -87,8 +90,10 @@
   .arac {
     position: relative; flex: 1 1 0; min-width: 0; min-height: 76px; padding: 8px 4px; border-radius: 18px; cursor: pointer;
     display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px;
-    border: 1px solid var(--ayrac); background: var(--kart); color: var(--yazi); box-shadow: var(--golge); font: inherit;
+    border: 1.5px solid transparent; background: var(--kart); color: var(--yazi); box-shadow: var(--golge); font: inherit;
+    -webkit-tap-highlight-color: transparent; transition: transform .12s;
   }
+  .arac:active { transform: scale(.96); }
   .arac:active { background: var(--turkuaz-acik); }
   .arac-simge { font-size: 28px; line-height: 1; }
   .arac-ad { font-size: 16px; font-weight: 700; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 100%; }
@@ -106,8 +111,25 @@
   .ayar-not { font-size: 16px !important; font-weight: 400 !important; color: var(--soluk); margin: 16px 0 !important; }
   .ayar-not:empty { display: none; }
 
+  /* iOS başlık alanı: büyük başlık + tek satırlık özet şeridi */
+  .giris h1 { font-size: 34px; font-weight: 800; letter-spacing: -.6px; margin: 0; }
+  .ozet-serit {
+    display: flex; flex-wrap: wrap; align-items: center; gap: 4px 8px; margin-top: 6px;
+    font-size: 17px; color: var(--soluk);
+  }
+  .ozet-serit b { color: var(--yazi); font-weight: 700; }
+  .ozet-serit .wa-var b { color: #e53935; }
+  .ozet-serit .okunmamis-bilgi:not(.wa-var) { display: none; } /* okunmamış yokken şerit tek satır kalır */
+  .ozet-serit .nokta { opacity: .6; }
+  .sifirla-metin {
+    min-height: 44px; padding: 0 6px; border: 0; background: transparent; cursor: pointer;
+    color: #e53935; font: inherit; font-size: 17px; font-weight: 600;
+  }
+  .sifirla-metin:disabled { display: none; }
+  .giris .izin { margin-top: 10px; }
+
   /* Giriş */
-  .giris { padding: 28px 4px 8px; }
+  .giris { padding: 18px 4px 8px; }
   .giris h1 { margin: 0 0 8px; font-size: 34px; line-height: 1.2; letter-spacing: -.5px; }
   .giris p { margin: 0; color: var(--soluk); }
   .ozet { display: flex; gap: 12px; margin-top: 20px; flex-wrap: wrap; }
@@ -122,8 +144,7 @@
   /* Günlük özet kartı */
   .gunluk {
     display: flex; align-items: center; gap: 14px; width: 100%; margin-top: 12px; padding: 14px 18px;
-    background: var(--kart); border: 1px solid var(--ayrac); border-left: 6px solid var(--turkuaz);
-    border-radius: 18px; box-shadow: var(--golge); color: inherit; font: inherit; text-align: left;
+    background: var(--kart); border: 0; border-radius: 18px; box-shadow: var(--golge); color: inherit; font: inherit; text-align: left;
   }
   .gunluk { flex-direction: column; align-items: stretch; padding: 0; }
   .gunluk .gunluk-satir {
@@ -244,7 +265,7 @@
   .onay-kutu .onay-not { margin: -8px 0 20px; font-size: 18px; font-weight: 400; color: var(--soluk); }
 
   /* Bölümler */
-  h2 { margin: 36px 4px 12px; font-size: 24px; }
+  h2 { margin: 28px 4px 10px; font-size: 22px; font-weight: 800; letter-spacing: -.3px; }
   h2 small { color: var(--soluk); font-weight: 400; font-size: 18px; }
   .liste { display: grid; gap: 12px; grid-template-columns: 1fr; }
   @media (min-width: 640px) { .liste { grid-template-columns: 1fr 1fr; } }
@@ -316,15 +337,16 @@
     flex: 0 0 auto; min-height: 48px; padding: 0 18px; border-radius: 14px; border: 0; cursor: pointer;
     background: var(--altin); color: #fff; font: inherit; font-size: 17px; font-weight: 700;
   }
+  /* iOS bölümlü seçici: gri iz üzerinde kayan beyaz hap */
   .suzgec {
-    display: flex; gap: 8px; margin-top: 24px;
-    background: var(--kart); border: 1px solid var(--ayrac); border-radius: 16px; padding: 4px;
+    display: flex; gap: 4px; margin-top: 18px;
+    background: rgba(118,118,128,.12); border: 0; border-radius: 14px; padding: 3px;
   }
   .suzgec button {
-    flex: 1; min-height: 48px; border: 0; border-radius: 12px; background: transparent;
+    flex: 1; min-height: 44px; border: 0; border-radius: 11px; background: transparent;
     color: var(--soluk); font: inherit; font-size: 17px; cursor: pointer;
   }
-  .suzgec button[aria-pressed="true"] { background: var(--altin); color: #fff; font-weight: 600; }
+  .suzgec button[aria-pressed="true"] { background: var(--hap); color: var(--yazi); font-weight: 700; box-shadow: 0 3px 8px rgba(0,0,0,.12), 0 1px 1px rgba(0,0,0,.04); }
   .gizli { display: none !important; }
 
   /* Arama */
@@ -457,16 +479,13 @@
 <main class="sayfa">
   <section class="giris">
     <h1>Uygulamalarım</h1>
-    <p>Kendi yaptığım telefon ve bilgisayar uygulamaları, tek sayfada.</p>
-    <div class="ozet">
-      <div><strong id="say-toplam">–</strong><span>uygulama</span></div>
-      <div><strong id="say-son">–</strong><span>son güncelleme</span></div>
-      <div class="okunmamis">
-        <div class="okunmamis-bilgi"><strong id="say-wa">0</strong><span>okunmamış</span></div>
-        <button id="sifirla-hepsi" class="sifirla" type="button" disabled>Hepsini sıfırla</button>
-        <button id="rozet-izin" class="izin gizli" type="button">Simge rozetini aç</button>
-      </div>
+    <div class="ozet-serit">
+      <span><b id="say-toplam">–</b> uygulama</span><span class="nokta" aria-hidden="true">·</span>
+      <span>güncel <b id="say-son">–</b></span>
+      <span class="okunmamis-bilgi" id="wa-bilgi"><span class="nokta" aria-hidden="true">·</span> <b id="say-wa">0</b> okunmamış
+        <button id="sifirla-hepsi" class="sifirla-metin" type="button" disabled>Sıfırla</button></span>
     </div>
+    <button id="rozet-izin" class="izin gizli" type="button">Simge rozetini aç</button>
     <div id="gunluk" class="gunluk kapali">
       <button id="gunluk-ac" class="gunluk-satir" type="button" aria-expanded="false" aria-controls="gunluk-detay">
         <span class="gunluk-simge" aria-hidden="true">☀️</span>
@@ -749,6 +768,7 @@
     document.querySelectorAll(".kart").forEach(k => { t += Number(k.dataset.wa) || 0; });
     document.getElementById("say-wa").textContent = t > 999 ? "999+" : String(t);
     document.getElementById("sifirla-hepsi").disabled = t <= 0;
+    document.getElementById("wa-bilgi").classList.toggle("wa-var", t > 0);
     // Ana ekran simgesi rozeti (Badging API): destek yoksa ya da izin verilmemişse sessizce atlanır.
     try {
       if ("setAppBadge" in navigator && t !== simgeSon) {
