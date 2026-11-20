@@ -205,6 +205,15 @@
   }
 
   /* Süzgeç */
+  /* Arama kutusu ve görünüm düğmesi (Izgara / Liste) yan yana */
+  .ara-satir { display: flex; gap: 10px; align-items: stretch; margin-top: 20px; }
+  .ara-satir .ara { margin-top: 0; flex: 1 1 auto; min-width: 0; }
+  .gorunum {
+    flex: 0 0 auto; min-height: 52px; padding: 0 16px; border-radius: 16px;
+    border: 1px solid var(--ayrac); background: var(--kart); color: var(--turkuaz);
+    font: inherit; font-size: 17px; font-weight: 700; cursor: pointer; white-space: nowrap;
+  }
+  .gorunum[aria-pressed="true"] { background: var(--turkuaz); border-color: var(--turkuaz); color: #fff; }
   .suzgec {
     display: flex; gap: 8px; margin-top: 24px;
     background: var(--kart); border: 1px solid var(--ayrac); border-radius: 16px; padding: 4px;
@@ -302,7 +311,10 @@
       </span>
       <span class="hafta" id="hafta" role="img" aria-label="Son 7 gün"></span>
     </button>
-    <input id="ara" class="ara" type="search" placeholder="Ara: ad ya da özellik" aria-label="Uygulama ara" autocomplete="off">
+    <div class="ara-satir">
+      <input id="ara" class="ara" type="search" placeholder="Ara: ad ya da özellik" aria-label="Uygulama ara" autocomplete="off">
+      <button id="gorunum" class="gorunum" type="button" aria-pressed="false">▦ Izgara</button>
+    </div>
     <div class="suzgec" role="group" aria-label="Süzgeç">
       <button data-s="hepsi" aria-pressed="true">Tümü</button>
       <button data-s="Telefon">Telefon</button>
@@ -974,6 +986,20 @@
     document.getElementById("bos").classList.toggle("gizli", toplam > 0);
   }
   document.querySelectorAll(".suzgec button").forEach(b => b.addEventListener("click", () => suz(b.dataset.s)));
+
+  // Görünüm: liste ya da ızgara. Seçim bu telefonda hatırlanır (vitrin-gorunum).
+  const gorunumDugme = document.getElementById("gorunum");
+  function gorunumUygula(izgara) {
+    document.body.classList.toggle("izgara", izgara);
+    gorunumDugme.setAttribute("aria-pressed", izgara);
+    gorunumDugme.textContent = izgara ? "☰ Liste" : "▦ Izgara";
+    gorunumDugme.setAttribute("aria-label", izgara ? "Liste görünümüne geç" : "Izgara görünümüne geç");
+    try { localStorage.setItem("vitrin-gorunum", izgara ? "izgara" : "liste"); } catch (e) {}
+  }
+  let izgaraKayitli = false;
+  try { izgaraKayitli = localStorage.getItem("vitrin-gorunum") === "izgara"; } catch (e) {}
+  gorunumUygula(izgaraKayitli);
+  gorunumDugme.addEventListener("click", () => gorunumUygula(!document.body.classList.contains("izgara")));
   ara.addEventListener("input", () => suz());
   document.getElementById("say-toplam").textContent = UYGULAMALAR.length;
   const son = UYGULAMALAR.map(u => u.tarih).sort().pop();
