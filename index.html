@@ -242,6 +242,22 @@
   /* Kısayolla gelinen kart 2 saniye parlar */
   @keyframes parla { 0%, 100% { box-shadow: var(--golge); } 50% { box-shadow: 0 0 0 4px var(--turkuaz), 0 0 24px var(--turkuaz); } }
   .kart.parla { animation: parla 1s ease 2; }
+
+  /* Izgara görünümü: kartlar ana ekran gibi simge + ad olur (telefonda 4'lü, çok dar ekranda 3'lü) */
+  body.izgara .liste { grid-template-columns: repeat(auto-fill, minmax(76px, 1fr)); gap: 18px 6px; }
+  body.izgara .kart {
+    flex-direction: column; align-items: center; gap: 8px; padding: 6px 2px;
+    background: none; border: 0; box-shadow: none; text-align: center; cursor: pointer;
+  }
+  body.izgara .kart > div:not(.simge) { width: 100%; min-width: 0; }
+  body.izgara .kart .simge { flex: 0 0 auto; width: 64px; height: 64px; border-radius: 17px; box-shadow: var(--golge); }
+  body.izgara .kart h3 {
+    font-size: 15px; font-weight: 600; line-height: 1.25;
+    display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; overflow-wrap: anywhere;
+  }
+  body.izgara .kart p, body.izgara .kart .etiketler, body.izgara .kart .ac-dugme { display: none; }
+  body.izgara .rozet { left: calc(50% + 40px); top: 0; min-width: 26px; height: 26px; font-size: 15px; padding: 0 6px; }
+  body.izgara .kart.parla { border-radius: 20px; }
   @media (prefers-reduced-motion: reduce) { .kart { animation: none; } }
 
   /* Ekran görüntüsü penceresi */
@@ -580,6 +596,12 @@
       siraDurum();
     }
     el.addEventListener("click", kullanimSay);
+    // Izgarada dokunuş: Android'de paket varsa uygulamayı aç, yoksa listeye dön ve karta git.
+    el.izgaraAc = () => {
+      kullanimSay();
+      if (u.paket && ANDROID) uygulamaAc(u);
+      else { gorunumUygula(false); setTimeout(() => karteGit(el), 60); }
+    };
     // "Aç" düğmesi: paket adı olan uygulamalarda, yalnızca Android'de görünür.
     if (u.paket && ANDROID) {
       const ac = document.createElement("button");
@@ -1000,6 +1022,25 @@
   try { izgaraKayitli = localStorage.getItem("vitrin-gorunum") === "izgara"; } catch (e) {}
   gorunumUygula(izgaraKayitli);
   gorunumDugme.addEventListener("click", () => gorunumUygula(!document.body.classList.contains("izgara")));
+  // Izgarada kartın içindeki eski davranışlar (WhatsApp sayacı, uzun basmayla sıfırlama, ekran görüntüsü)
+  // çalışmasın: dokunuş yakalama aşamasında karşılanır ve yalnızca kartın ızgara eylemi çalışır.
+  ["ana", "yardimci"].forEach(g => {
+    const liste = document.getElementById(g);
+    liste.addEventListener("click", e => {
+      if (!document.body.classList.contains("izgara")) return;
+      const kart = e.target.closest(".kart");
+      if (!kart || !kart.izgaraAc) return;
+      e.stopPropagation(); e.preventDefault();
+      kart.izgaraAc();
+    }, true);
+    ["pointerdown", "keydown", "contextmenu"].forEach(olay => liste.addEventListener(olay, e => {
+      if (!document.body.classList.contains("izgara")) return;
+      if (olay === "keydown" && e.key !== "Enter" && e.key !== " ") return;
+      e.stopPropagation();
+      if (olay !== "pointerdown") e.preventDefault();
+      if (olay === "keydown") { const k = e.target.closest(".kart"); if (k && k.izgaraAc) k.izgaraAc(); }
+    }, true));
+  });
   ara.addEventListener("input", () => suz());
   document.getElementById("say-toplam").textContent = UYGULAMALAR.length;
   const son = UYGULAMALAR.map(u => u.tarih).sort().pop();
