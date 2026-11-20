@@ -1,7 +1,7 @@
 // ideabox Vitrin: çevrimdışı çalışma.
 // İnternet varken her zaman en yenisi gelir (ağ önce); yoksa saklanan kopya açılır.
-const SAKLA = "vitrin-v29";
-const ILK = ["./", "index.html", "manifest.webmanifest", "simgeler/vitrin-192.png", "simgeler/vitrin-64.png"];
+const SAKLA = "vitrin-v30";
+const ILK = ["./", "index.html", "manifest.webmanifest", "simgeler/ib-192.png", "simgeler/ib-64.png"];
 
 self.addEventListener("install", e => {
   e.waitUntil(caches.open(SAKLA).then(c => c.addAll(ILK)).then(() => self.skipWaiting()));
