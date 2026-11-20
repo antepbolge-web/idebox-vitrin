@@ -195,6 +195,7 @@
   }
   .fikir-dugmeler button.sil { color: #e53935; }
   .fikir-dugmeler button.sil.emin { background: #e53935; border-color: #e53935; color: #fff; }
+  .komut { margin-top: 20px; border: 2px solid var(--turkuaz); background: var(--turkuaz-acik); color: var(--yazi); overflow-wrap: anywhere; padding: 8px 14px; }
   .fikir-durum { min-height: 1.4em; margin: -8px 0 8px; font-size: 16px; color: var(--turkuaz); }
   .onay-dugmeler { display: flex; gap: 12px; }
   .onay-dugmeler button {
@@ -467,6 +468,8 @@
       <button data-s="Bilgisayar">Bilgisayar</button>
     </div>
   </section>
+
+  <button id="komut" class="rapor-ac komut gizli" type="button"></button>
 
   <h2 id="b-favori" class="gizli">★ Favoriler</h2>
   <div class="liste" id="favori"></div>
@@ -1562,7 +1565,12 @@
       document.getElementById("b-" + g).classList.toggle("gizli", gorunen === 0);
       toplam += gorunen;
     });
-    document.getElementById("bos").classList.toggle("gizli", toplam > 0);
+    // Komut ("fikir", "rapor") yazıldıysa uygulama bulunmasa da "uyan uygulama yok" yazmaz; komut düğmesi görünür.
+    const komut = komutCoz(ara.value);
+    const kd = document.getElementById("komut");
+    kd.classList.toggle("gizli", !komut);
+    if (komut) kd.textContent = komut.tur === "rapor" ? "📊 Haftalık raporu aç" : (komut.icerik ? "💡 Fikir kutusuna yaz: “" + komut.icerik.slice(0, 60) + (komut.icerik.length > 60 ? "…" : "") + "”" : "💡 Fikir kutusunu aç");
+    document.getElementById("bos").classList.toggle("gizli", toplam > 0 || !!komut);
   }
   document.querySelectorAll(".suzgec button").forEach(b => b.addEventListener("click", () => suz(b.dataset.s)));
 
@@ -1625,6 +1633,8 @@
   // Klavyedeki Ara/Git: ilk sonuç (favoriler, ana, yardımcı sırasıyla; aramadaki sıraya göre) açılır.
   ara.addEventListener("keydown", e => {
     if (e.key !== "Enter" || !duzle(ara.value)) return;
+    const komut = komutCoz(ara.value);
+    if (komut) { e.preventDefault(); komutUygula(komut); return; }
     e.preventDefault();
     let ilk = null;
     for (const g of ["favori", "ana", "yardimci"]) {
@@ -1665,6 +1675,8 @@
     }
     function sonucuIsle(adaylar) {
       // Sırayla dene: sonuç veren ilk duyulan cümle aramada kalır.
+      // Önce komut mu diye bak ("fikir …", "rapor"): öyleyse uygulama aranmaz.
+      for (const a of adaylar) { const k = komutCoz(a); if (k) { gizle(); komutUygula(k); if (navigator.vibrate) navigator.vibrate(30); return; } }
       let kartlar = [], metin = adaylar[0] || "";
       for (const a of adaylar) {
         ara.value = a; suz(); kartlar = gorunenKartlar();
@@ -1714,6 +1726,32 @@
       try { t.start(); } catch (e) { durdur(); goster("Mikrofon başlatılamadı", false, 3000); }
     });
   })();
+  // Komutlar (yazarak ya da sesle): "fikir" / "fikir kutusu" → fikir kutusu; arkasından gelen söz
+  // ("fikir yarın ders notları", "fikir: …") kutuya yazılı gelir ("not" bilerek yok: "not defteri" Defter içindir), kullanıcı Kaydet'e basar.
+  // "rapor" / "haftalık rapor" (+ "aç") → haftalık rapor. Uygulama adlarıyla çakışmaz (hiçbiri bu sözlerle başlamaz).
+  function komutCoz(metin) {
+    const ham = String(metin || "").trim();
+    const q = duzle(ham);
+    if (!q) return null;
+    if (/^(haftalik )?rapor(u)?( ac)?$/.test(q)) return { tur: "rapor" };
+    const m = ham.match(/^(fikir)(\s+kutusu(nu)?)?(\s+a[çc])?(?=$|[\s:,.\-])[\s:,.\-]*([\s\S]*)$/i);
+    if (!m) return null;
+    return { tur: "fikir", icerik: m[5].trim().slice(0, 2000) };
+  }
+  function komutUygula(komut) {
+    ara.value = ""; suz(); ara.blur();
+    if (komut.tur === "rapor") { document.getElementById("rapor-ac").click(); return; }
+    fikirAc();
+    if (komut.icerik) {
+      const onceki = fikirAlan.value.trim();
+      fikirAlan.value = ((onceki ? onceki + "\n\n" : "") + komut.icerik).slice(0, 2000);
+      fikirAlan.dispatchEvent(new Event("input")); // Kaydet açılır, taslak saklanır
+      clearTimeout(fikirDurumZaman);
+      fikirDurum.textContent = "🎤 Söyledikleriniz yazıldı. Düzeltip Kaydet'e basın.";
+    }
+  }
+  document.getElementById("komut").addEventListener("click", () => { const k = komutCoz(ara.value); if (k) komutUygula(k); });
+
   // Uzun basma kısayolları (?git=fikir | ses | rapor): ilgili pencere açılır, adres temizlenir.
   (function kisayolGit() {
     let git = null;
