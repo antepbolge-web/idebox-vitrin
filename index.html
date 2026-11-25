@@ -111,6 +111,8 @@
   .ayar-bolum { margin: 0 0 10px; font-size: 17px; color: var(--soluk); font-weight: 600; }
   .ayar-not { font-size: 16px !important; font-weight: 400 !important; color: var(--soluk); margin: 16px 0 !important; }
   .ayar-not:empty { display: none; }
+  .yedek-not { margin: 0 0 10px !important; }
+  .yedek-not.gecikti { color: #e8711a; font-weight: 700 !important; }
 
   /* iOS başlık alanı: büyük başlık + tek satırlık özet şeridi */
   .giris h1 { font-size: 30px; font-weight: 800; letter-spacing: -.6px; margin: 0; }
@@ -506,7 +508,7 @@
       <button id="rapor-ac" class="arac" type="button" aria-label="Haftalık rapor"><span class="arac-simge" aria-hidden="true">📊</span><span class="arac-ad">Rapor</span></button>
       <button id="fikir-ac" class="arac" type="button" aria-label="Fikir kutusu"><span class="arac-simge" aria-hidden="true">💡</span><span class="arac-ad">Fikir</span><span class="arac-rozet gizli" id="fikir-rozet"></span></button>
       <button id="surum-denetle" class="arac gizli" type="button" aria-label="Sürümleri denetle"><span class="arac-simge" aria-hidden="true">🔄</span><span class="arac-ad" id="sd-ad">Sürüm</span><span class="arac-rozet gizli" id="sd-rozet"></span></button>
-      <button id="ayarlar-ac" class="arac" type="button" aria-label="Ayarlar"><span class="arac-simge" aria-hidden="true">⚙️</span><span class="arac-ad">Ayarlar</span></button>
+      <button id="ayarlar-ac" class="arac" type="button" aria-label="Ayarlar"><span class="arac-simge" aria-hidden="true">⚙️</span><span class="arac-ad">Ayarlar</span><span class="arac-rozet gizli" id="ayar-rozet" aria-hidden="true">!</span></button>
     </div>
     <div class="ara-satir">
       <input id="ara" class="ara" type="search" placeholder="Ara…" aria-label="Uygulama ara" autocomplete="off">
@@ -550,6 +552,7 @@
       <button data-t="dark">Koyu</button>
     </div>
     <h4 class="ayar-bolum">Yedek ve taşıma</h4>
+    <p class="ayar-not yedek-not" id="yedek-not"></p>
     <div class="sira-sifirla-alan">
       <button id="disa-aktar" class="sira-sifirla" type="button">⬆ Sayaçları ve fikirleri dışa aktar</button>
       <button id="ice-aktar" class="sira-sifirla" type="button">⬇ İçe aktar</button>
@@ -1254,6 +1257,7 @@
         const dosya = new File([metin], kok + ".txt", { type: "text/plain" });
         if (navigator.canShare({ files: [dosya] })) {
           await navigator.share({ files: [dosya], title: "Vitrin sayaçları" });
+          yedekAlindi();
           return;
         }
       } catch (e) {
@@ -1261,6 +1265,7 @@
       }
     }
     indir(metin, kok + ".json");
+    yedekAlindi();
   }
   function indir(metin, ad) {
     const blob = new Blob([metin], { type: "application/json" });
@@ -1557,6 +1562,34 @@
   onayFikir.addEventListener("click", e => { if (e.target === onayFikir) fikirKapat(); });
   document.addEventListener("keydown", e => { if (e.key === "Escape" && !onayFikir.classList.contains("gizli")) fikirKapat(); });
   fikirSayac();
+
+  // Yedek hatırlatıcısı: son dışa aktarma günü vitrin-son-yedek'te durur. 7 gün geçince (ya da hiç yedek yokken
+  // fikir/sayaç birikmişse) Ayarlar düğmesinde turuncu "!" çıkar; Ayarlar penceresinde son yedek günü yazar.
+  const YEDEK_ANAHTAR = "vitrin-son-yedek", YEDEK_GUN = 7;
+  function yedekAlindi() {
+    try { localStorage.setItem(YEDEK_ANAHTAR, bugunTarih()); } catch (e) {}
+    yedekDurum();
+  }
+  function yedekDurum() {
+    let son = null;
+    try { son = localStorage.getItem(YEDEK_ANAHTAR); } catch (e) {}
+    if (son && !/^\d{4}-\d{2}-\d{2}$/.test(son)) son = null;
+    let gun = null;
+    if (son) gun = Math.round((new Date(bugunTarih() + "T12:00:00") - new Date(son + "T12:00:00")) / 86400000);
+    let veriVar = false;
+    try { veriVar = fikirOku().length > 0 || Object.keys(gunOku()).length > 0 || favoriOku().length > 0; } catch (e) {}
+    const gecikti = son ? gun >= YEDEK_GUN : veriVar;
+    const not = document.getElementById("yedek-not");
+    not.textContent = !son ? (veriVar ? "Henüz yedek alınmadı." : "")
+      : "Son yedek: " + (gun <= 0 ? "bugün" : gun === 1 ? "dün" : gun + " gün önce") + (gecikti ? " · yedek almanın vakti geldi" : "");
+    not.classList.toggle("gecikti", gecikti);
+    const ayar = document.getElementById("ayarlar-ac");
+    ayar.classList.toggle("uyari", gecikti);
+    document.getElementById("ayar-rozet").classList.toggle("gizli", !gecikti);
+    ayar.setAttribute("aria-label", gecikti ? "Ayarlar, yedek almanın vakti geldi" : "Ayarlar");
+  }
+  yedekDurum();
+  document.addEventListener("visibilitychange", () => { if (!document.hidden) yedekDurum(); });
 
   // Sürüm denetimi (Android): Başlatıcı köprüsü (0.3.0-cafer.32+) kurulu tr.cafer.* sürüm kodlarını
   // vitrine #surumler=paket:kod,… ile geri gönderir; kod surum.json'daki "kod"dan küçükse kart eski sayılır.
