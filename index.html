@@ -253,6 +253,8 @@
     color: var(--turkuaz); font: inherit; font-size: 17px; font-weight: 700; cursor: pointer;
   }
   .fikir-dugmeler button.sil { color: #e53935; }
+  .fikir-dugmeler .claude { flex: 1; display: flex; align-items: center; justify-content: center; min-height: 48px; border-radius: 14px; background: var(--turkuaz); color: #fff; font-size: 17px; font-weight: 700; text-decoration: none; white-space: nowrap; padding: 0 6px; }
+  @media (max-width: 359px) { .fikir-dugmeler { gap: 6px; } .fikir-dugmeler button, .fikir-dugmeler .claude { font-size: 15px; white-space: nowrap; padding: 0 4px; } .fikir-dugmeler button.emin { white-space: normal; } }
   .fikir-dugmeler button.sil.emin { background: #e53935; border-color: #e53935; color: #fff; }
   .komut { margin-top: 20px; border: 2px solid var(--turkuaz); background: var(--turkuaz-acik); color: var(--yazi); overflow-wrap: anywhere; padding: 8px 14px; }
   .fikir-durum { min-height: 1.4em; margin: -8px 0 8px; font-size: 16px; color: var(--turkuaz); }
@@ -1452,6 +1454,7 @@
 
   // Fikir kutusu: fikirler yalnızca bu cihazda (vitrin-fikir) durur; dışa/içe aktarmayla taşınır.
   // Her kayıt { t: ISO tarih, m: metin }. En yeni üstte, en çok 300 kayıt, metin en çok 2000 harf.
+  const CLAUDE_ISTEM = "Bu fikri değerlendir, güçlü ve zayıf yönlerini, ilk 3 adımı yaz:";
   const FIKIR_ANAHTAR = "vitrin-fikir", FIKIR_TASLAK = "vitrin-fikir-taslak", FIKIR_EN_COK = 300;
   function fikirTemizle(liste) {
     if (!Array.isArray(liste)) return [];
@@ -1502,6 +1505,11 @@
       const dg = document.createElement("div"); dg.className = "fikir-dugmeler";
       const pay = document.createElement("button"); pay.type = "button"; pay.textContent = "↗ Paylaş";
       pay.addEventListener("click", () => fikirPaylas(f));
+      // Fikri Claude'da yeni sohbet olarak açar; başına değerlendirme istemi eklenir.
+      const cl = document.createElement("a"); cl.className = "claude"; cl.textContent = "✦ Claude";
+      cl.href = "https://claude.ai/new?q=" + encodeURIComponent(CLAUDE_ISTEM + "\n\n" + f.m);
+      cl.target = "_blank"; cl.rel = "noopener";
+      cl.setAttribute("aria-label", "Bu fikri Claude'a gönder");
       const sil = document.createElement("button"); sil.type = "button"; sil.className = "sil"; sil.textContent = "🗑 Sil";
       let bekle = 0;
       sil.addEventListener("click", () => {
@@ -1515,7 +1523,7 @@
         try { fikirYaz(fikirOku().filter(x => !(x.t === f.t && x.m === f.m))); } catch (e) { fikirBildir("Silinemedi"); return; }
         fikirListele(); fikirSayac(); fikirBildir("Silindi");
       });
-      dg.append(pay, sil);
+      dg.append(pay, cl, sil);
       li.append(tarih, m, dg);
       ul.appendChild(li);
     });
