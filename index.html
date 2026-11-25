@@ -369,7 +369,7 @@
   .kart { animation: belir .45s ease both; }
   /* Kısayolla gelinen kart 2 saniye parlar */
   @keyframes parla { 0%, 100% { box-shadow: var(--golge); } 50% { box-shadow: 0 0 0 4px var(--turkuaz), 0 0 24px var(--turkuaz); } }
-  .kart.parla { animation: parla 1s ease 2; }
+  .kart.parla, #disa-aktar.parla { animation: parla 1s ease 2; }
 
   /* Favori yıldızı: kartın sağ üst köşesinde, 44 px dokunma alanı */
   .yildiz {
@@ -1681,7 +1681,8 @@
     const komut = komutCoz(ara.value);
     const kd = document.getElementById("komut");
     kd.classList.toggle("gizli", !komut);
-    if (komut) kd.textContent = komut.tur === "rapor" ? "📊 Haftalık raporu aç" : (komut.icerik ? "💡 Fikir kutusuna yaz: “" + komut.icerik.slice(0, 60) + (komut.icerik.length > 60 ? "…" : "") + "”" : "💡 Fikir kutusunu aç");
+    const ETIKET = { rapor: "📊 Haftalık raporu aç", tema: "🎨 Temayı değiştir", yedek: "💾 Yedekle (dışa aktar)", surum: "⬆ Güncellemeleri denetle", ayar: "⚙️ Ayarları aç", favori: "★ Favorilere git" };
+    if (komut) kd.textContent = ETIKET[komut.tur] ? (komut.tur === "tema" ? "🎨 " + { dark: "Koyu temaya", light: "Açık temaya", system: "Sistem temasına" }[komut.t] + " geç" : ETIKET[komut.tur]) : (komut.icerik ? "💡 Fikir kutusuna yaz: “" + komut.icerik.slice(0, 60) + (komut.icerik.length > 60 ? "…" : "") + "”" : "💡 Fikir kutusunu aç");
     document.getElementById("bos").classList.toggle("gizli", toplam > 0 || !!komut);
   }
   document.querySelectorAll(".suzgec button").forEach(b => b.addEventListener("click", () => suz(b.dataset.s)));
@@ -1862,6 +1863,14 @@
     const q = duzle(ham);
     if (!q) return null;
     if (/^(haftalik )?rapor(u)?( ac)?$/.test(q)) return { tur: "rapor" };
+    // Ayar komutları: tam söz kalıbı gerekir, uygulama aramasıyla çakışmasın ("güncelle" tek başına uygulamayı açar).
+    const tm = q.match(/^(koyu|karanlik|gece|acik|aydinlik|gunduz|sistem|otomatik) (tema|mod|gorunum)(u|a|e|i|ya|ye|yu|si|su|i|yi)?( ac| yap| gec| sec| olsun)?$/);
+    if (tm) return { tur: "tema", t: /^(koyu|karanlik|gece)$/.test(tm[1]) ? "dark" : /^(sistem|otomatik)$/.test(tm[1]) ? "system" : "light" };
+    if (/^(yedekle|yedek al|yedegi al|yedek(i)? ac|disa aktar)$/.test(q)) return { tur: "yedek" };
+    if (/^((guncellemeleri|surumleri) (denetle|kontrol et)|(surum|guncelleme) (denetle|denetimi|kontrol(u)?|kontrol et))$/.test(q)
+        && !document.getElementById("surum-denetle").hidden && getComputedStyle(document.getElementById("surum-denetle")).display !== "none") return { tur: "surum" };
+    if (/^ayar(lar)?(i|a)?( ac)?$/.test(q)) return { tur: "ayar" };
+    if (/^favori(ler)?(im)?(i)?( ac| goster)?$/.test(q) && document.getElementById("favori").children.length) return { tur: "favori" };
     const m = ham.match(/^(fikir)(\s+kutusu(nu)?)?(\s+a[çc])?(?=$|[\s:,.\-])[\s:,.\-]*([\s\S]*)$/i);
     if (!m) return null;
     return { tur: "fikir", icerik: m[5].trim().slice(0, 2000) };
@@ -1869,6 +1878,20 @@
   function komutUygula(komut) {
     ara.value = ""; suz(); ara.blur();
     if (komut.tur === "rapor") { document.getElementById("rapor-ac").click(); return; }
+    if (komut.tur === "tema") { temaUygula(komut.t); return; }
+    if (komut.tur === "surum") { document.getElementById("surum-denetle").click(); return; }
+    if (komut.tur === "favori") { document.getElementById("b-favori").scrollIntoView({ behavior: "smooth", block: "start" }); return; }
+    if (komut.tur === "ayar" || komut.tur === "yedek") {
+      document.getElementById("ayarlar-ac").click();
+      if (komut.tur === "yedek") {
+        // Paylaşma penceresi gerçek bir dokunuş ister; bu yüzden yalnız düğme gösterilir ve parlatılır.
+        const d = document.getElementById("disa-aktar");
+        d.scrollIntoView({ block: "center" }); d.focus();
+        d.classList.remove("parla"); void d.offsetWidth; d.classList.add("parla");
+        setTimeout(() => d.classList.remove("parla"), 2100);
+      }
+      return;
+    }
     fikirAc();
     if (komut.icerik) {
       const onceki = fikirAlan.value.trim();
