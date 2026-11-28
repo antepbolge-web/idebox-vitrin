@@ -630,7 +630,7 @@
   const ANDROID = /Android/i.test(navigator.userAgent);
   // Akıllı arama: uygulama başına anahtar kelimeler (ad ve açıklamaya ek). Ad değişirse buradaki anahtar da güncellenmeli.
   // Adı ANAHTAR değil: kartYap içindeki WhatsApp anahtarı (const ANAHTAR) onu gölgeliyordu.
-  const ANAHTAR_KELIMELER = {"Telefon": "arama rehber kişi numara çağrı engelle telefon et çağır", "Speed Dial": "hızlı arama favori kişi tek dokunuş", "Kim Arıyor": "arayan numara spam dolandırıcı uyarı", "Vakit": "namaz ezan imsak iftar takvim kuran sure vakti vakitleri saati oruç oku", "Mektubat": "imam rabbani mektup tasavvuf kitap okuma", "Defter": "not yazı günlük tutanak yaz", "Çeviri": "tercüme ingilizce sözlük dil çevir", "Merkez": "prompt yapay zeka ai claude site haber", "Kıble": "pusula yön namaz mihrap güneş", "Kilit": "kilit ekranı ekran kilidi güvenlik parola", "Alarmlar": "alarm saat uyandırma zamanlayıcı kronometre kur uyandır", "Hava": "hava durumu yağmur sıcaklık derece", "Saatler": "widget saat dünya saati ana ekran vakit", "Spotlight": "arama bul hesap makinesi vikipedi sözlük", "PDF Araç": "pdf belge tarama imza birleştir böl", "Depolama": "temizlik yer aç hafıza çöp büyük dosya", "Dosyalar": "dosya klasör indirilenler belge", "Galeri": "fotoğraf resim albüm video resimlerim", "Rötuş": "düzenleme düzenle filtre ışık renk", "Güncelle": "güncelleme yeni sürüm apk güncel", "Başlatıcı": "ana ekran launcher masaüstü simge", "Adım": "adım sayar yürüyüş sağlık spor attım yürüdüm", "Şeker Defteri": "şeker diyabet kan şekeri insülin sensör glukoz ölç ölçüm", "Daily English": "ingilizce kelime sınav dil öğren", "Fişmatik": "fiş harcama fatura gider para", "Masaüstü Widget": "bilgisayar masaüstü saat vakit widget"};
+  const ANAHTAR_KELIMELER = {"Telefon": "arama rehber kişi numara çağrı engelle telefon et çağır", "Speed Dial": "hızlı arama favori kişi tek dokunuş", "Kim Arıyor": "arayan numara spam dolandırıcı uyarı", "Vakit": "namaz ezan imsak iftar takvim kuran sure vakti vakitleri saati oruç oku", "Mektubat": "imam rabbani mektup tasavvuf kitap okuma", "Defter": "not yazı günlük tutanak yaz", "Çeviri": "tercüme ingilizce sözlük dil çevir", "Merkez": "prompt yapay zeka ai claude site haber", "Kıble": "pusula yön namaz mihrap güneş", "Kilit": "kilit ekranı ekran kilidi güvenlik parola", "Alarmlar": "alarm saat uyandırma zamanlayıcı kronometre kur uyandır", "Hava": "hava durumu yağmur sıcaklık derece", "Saatler": "widget saat dünya saati ana ekran vakit", "Spotlight": "arama bul hesap makinesi vikipedi sözlük", "PDF Araç": "pdf belge tarama imza birleştir böl", "Depolama": "temizlik yer aç hafıza çöp büyük dosya", "Dosyalar": "dosya klasör indirilenler belge", "Galeri": "fotoğraf resim albüm video resimlerim", "Rötuş": "düzenleme düzenle filtre ışık renk", "Güncelle": "güncelleme yeni sürüm apk güncel", "Telefon Deneme": "deneme telefon arama", "Spotlight Deneme": "deneme spotlight arama", "Hesap Makinesi Deneme": "hesap makinesi deneme hesapla", "Başlatıcı": "ana ekran launcher masaüstü simge", "Adım": "adım sayar yürüyüş sağlık spor attım yürüdüm", "Şeker Defteri": "şeker diyabet kan şekeri insülin sensör glukoz ölç ölçüm", "Daily English": "ingilizce kelime sınav dil öğren", "Fişmatik": "fiş harcama fatura gider para", "Masaüstü Widget": "bilgisayar masaüstü saat vakit widget"};
   // Türkçe harf farklarını yok sayan küçük harfli biçim: "Kıble" → "kible", "Şeker" → "seker".
   function duzle(m) {
     return String(m).toLocaleLowerCase("tr").replace(/ı/g, "i").replace(/ş/g, "s").replace(/ğ/g, "g")
@@ -684,12 +684,12 @@
       aciklama: "Namaz vakitleri, takvim ve Kur'an-ı Kerim.", yenilik: "Aylık tabloda gün adları düzeldi (Paz/Pzt, Cum/Cmt); gece yarısı tablo yenilenir" },
     { ad: "Mektubat", paket: "tr.cafer.mektup", simge: "mektup.png", surum: "1.0.4", kod: 5, tarih: "2026-11-16", whatsapp: 0, grup: "ana", yer: "Telefon",
       aciklama: "Mektubat-ı Rabbani okuma, not ve arama.", yenilik: "Üstteki arama yazım eşlerini de buluyor; sonuç doğru sekmede açılıyor" },
-    { ad: "Defter", paket: "tr.cafer.notdefteri", simge: "notlar.png", surum: "1.4.0", kod: 7, tarih: "2026-11-17", whatsapp: 0, grup: "ana", yer: "Telefon",
-      aciklama: "Notlar; Claude ile düzeltme ve özetleme.", yenilik: "Claude menüsünde Merkez kalıpları (122)" },
+    { ad: "Defter", paket: "tr.cafer.notdefteri", simge: "notlar.png", surum: "1.4.2", kod: 9, tarih: "2026-11-28", whatsapp: 0, grup: "ana", yer: "Telefon",
+      aciklama: "Notlar; Claude ile düzeltme ve özetleme.", yenilik: "PDF Araç’tan gelen özgün PDF ve seçili sayfa metni aynı nota kaydedilir." },
     { ad: "Çeviri", paket: "tr.cafer.ceviri", simge: "ceviri.png", surum: "1.0.4", kod: 5, tarih: "2026-11-16", whatsapp: 0, grup: "ana", yer: "Telefon",
       aciklama: "Çeviri, kelime defteri ve Claude ile çeviri.", yenilik: "Geçmişe yazarken parçalar düşmüyor; gizlilik yazısı düzeltildi" },
-    { ad: "Merkez", paket: "tr.cafer.merkez", simge: "merkez.png", ekran: ["merkez-1.jpg"], surum: "1.1.21", kod: 30, tarih: "2026-11-26", whatsapp: 0, grup: "ana", yer: "Telefon",
-      aciklama: "Araçlarıma tek yerden giriş.", yenilik: "Ana sayfada son 3 öneriniz: tek dokunuşla geri dönün" },
+    { ad: "Merkez", paket: "tr.cafer.merkez", simge: "merkez.png", ekran: ["merkez-1.jpg"], surum: "1.1.22", kod: 31, tarih: "2026-11-28", whatsapp: 0, grup: "ana", yer: "Telefon",
+      aciklama: "Araçlarıma tek yerden giriş.", yenilik: "Üst çubuktaki Spotlight kısayolu kaldırıldı." },
     { ad: "Kıble", paket: "tr.cafer.kible", simge: "kible.png", surum: "1.0.3", kod: 4, tarih: "2026-11-16", whatsapp: 0, grup: "ana", yer: "Telefon",
       aciklama: "Kıble yönü ve Güneş saati.", yenilik: "Jiroskopsuz telefonlarda da yön; Güneş saati daha kesin; konum kapalıysa uyarı" },
     { ad: "Kilit", paket: "tr.cafer.kilit", simge: "kilit.svg", surum: "1.2.4", kod: 25, tarih: "2026-11-17", whatsapp: 0, grup: "ana", yer: "Telefon",
@@ -702,8 +702,8 @@
       aciklama: "Saat ve Vakit widget'ları.", yenilik: "Vakit widget'ı donmuyor; widget ayarları birbirini değiştirmiyor" },
     { ad: "Spotlight", paket: "tr.cafer.aramaasistani", simge: "arama.png", ekran: ["arama-1.jpg"], surum: "1.2.21", kod: 29, tarih: "2026-11-21", whatsapp: 0, grup: "yardimci", yer: "Telefon + Bilgisayar",
       aciklama: "Spotlight tarzı arama: uygulama, dosya, kişi, hesap makinesi, sözlük, Vikipedi.", yenilik: "Merkez'deki Spotlight düğmesiyle açılır" },
-    { ad: "PDF Araç", paket: "tr.cafer.pdfasistani", simge: "pdf.png", surum: "1.1.7", kod: 12, tarih: "2026-11-16", whatsapp: 0, grup: "yardimci", yer: "Telefon + Bilgisayar",
-      aciklama: "PDF okuma, imzalama, kamerayla tarama, bölme ve birleştirme.", yenilik: "WhatsApp ile gelen PDF'ler de listede; büyük fotoğraftan PDF daha az bellekle" },
+    { ad: "PDF Araç", paket: "tr.cafer.pdfasistani", simge: "pdf.png", surum: "1.1.8", kod: 13, tarih: "2026-11-28", whatsapp: 0, grup: "yardimci", yer: "Telefon + Bilgisayar",
+      aciklama: "PDF okuma, imzalama, kamerayla tarama, bölme ve birleştirme.", yenilik: "Özgün PDF ve seçili sayfaların metni Defter’e aktarılabilir." },
     { ad: "Depolama", paket: "tr.cafer.depo", simge: "depo.png", ekran: ["depo-1.jpg"], surum: "2.1.9", kod: 12, tarih: "2026-11-16", whatsapp: 0, grup: "yardimci", yer: "Telefon + Bilgisayar",
       aciklama: "Depolama temizliği: hızlı temizlik, yinelenen dosyalar, uygulama listesi.", yenilik: "Hızlı Temizlik artık güvenli: son 24 saatin dosyaları, belgeler ve WhatsApp korunuyor; yalnız gösterilen dosyalar silinir" },
     { ad: "Dosyalar", paket: "tr.cafer.dosya", simge: "dosya.png", surum: "1.2.5", kod: 15, tarih: "2026-11-23", whatsapp: 0, grup: "yardimci", yer: "Telefon + Bilgisayar",
@@ -712,10 +712,16 @@
       aciklama: "Albümler, görüntüleyici, favoriler, düzenleme; HEIC ve video desteği.", yenilik: "Dosyalar ile ortak yer imleri ve çöp; Diğer menüsünde Dosyalar'da göster" },
     { ad: "Rötuş", paket: "tr.cafer.rotus", simge: "rotus.png", surum: "1.2.0", kod: 6, tarih: "2026-11-17", whatsapp: 0, grup: "yardimci", yer: "Telefon",
       aciklama: "Fotoğraf rötuşu ve düzenleme.", yenilik: "Claude'a sor: fotoğraf için ayar önerisi" },
-    { ad: "Güncelle", paket: "tr.cafer.guncelleyici", simge: "guncelleyici.png", ekran: ["guncelleyici-1.jpg"], surum: "1.0.6", kod: 9, tarih: "2026-11-16", whatsapp: 0, grup: "yardimci", yer: "Telefon",
-      aciklama: "Bütün uygulamalarımın yeni sürümünü tek listede gösterir; günlük bildirim ve widget.", yenilik: "Liste açılışta tazeleniyor; güncellemeyi kurunca eski bildirim kalkıyor" },
-    { ad: "Başlatıcı", paket: "tr.cafer.baslatici", simge: "baslatici.svg", ekran: ["baslatici-1.jpg"], surum: "0.3.0-cafer.35", kod: 38, tarih: "2026-11-21", whatsapp: 0, grup: "yardimci", yer: "Telefon",
-      aciklama: "iOS tarzı cam görünümlü ana ekran: klasör kartları, hareket çubuğu, otomatik düzen.", yenilik: "Ana ekranda aşağı çekince Spotlight açılır (kurulu değilse eski arama)" },
+    { ad: "Güncelle", paket: "tr.cafer.guncelleyici", simge: "guncelleyici.png", ekran: ["guncelleyici-1.jpg"], surum: "1.0.7", kod: 10, tarih: "2026-11-28", whatsapp: 0, grup: "yardimci", yer: "Telefon",
+      aciklama: "Bütün uygulamalarımın yeni sürümünü tek listede gösterir; günlük bildirim ve widget.", yenilik: "Açılınca liste bir dakikadan eskiyse kendiliğinden yenilenir." },
+    { ad: "Telefon Deneme", paket: "com.cafer.telefon", simge: "telefon.svg", surum: "1.12", kod: 13, tarih: "2026-11-28", whatsapp: 0, grup: "yardimci", yer: "Telefon",
+      aciklama: "Sayfadaki deneme telefon uygulaması.", yenilik: "" },
+    { ad: "Spotlight Deneme", paket: "tr.cafer.aramaasistani.duzenleme.deneme", simge: "arama.png", ekran: ["arama-1.jpg"], surum: "1.2.22", kod: 30, tarih: "2026-11-28", whatsapp: 0, grup: "yardimci", yer: "Telefon",
+      aciklama: "Sayfadaki deneme Spotlight.", yenilik: "" },
+    { ad: "Hesap Makinesi Deneme", paket: "com.korhesap.makine.onizleme", surum: "1.4.2", kod: 7, tarih: "2026-11-28", whatsapp: 0, grup: "yardimci", yer: "Telefon",
+      aciklama: "Sayfadaki deneme hesap makinesi.", yenilik: "" },
+    { ad: "Başlatıcı", paket: "tr.cafer.baslatici", simge: "baslatici.svg", ekran: ["baslatici-1.jpg"], surum: "0.3.0-cafer.36", kod: 39, tarih: "2026-11-28", whatsapp: 0, grup: "yardimci", yer: "Telefon",
+      aciklama: "iOS tarzı cam görünümlü ana ekran: klasör kartları, hareket çubuğu, otomatik düzen.", yenilik: "Ana ekranda aşağı kaydırınca Spotlight 1.2.22 açılır." },
     { ad: "Adım", paket: "tr.cafer.adim", simge: "adim.png", ekran: ["adim-1.jpg"], surum: "1.0.11", kod: 13, tarih: "2026-11-16", whatsapp: 0, grup: "yardimci", yer: "Telefon",
       aciklama: "Adım sayar: günlük hedef, haftalık grafik, hatırlatma ve widget'lar.", yenilik: "Sayaç kapalı kaldığı saatlerin adımları doğru güne yazılıyor; sayaç durunca uyarı" },
     { ad: "Şeker Defteri", paket: "tr.cafer.seker", simge: "seker.png", surum: "1.3.1", kod: 6, tarih: "2026-11-23", whatsapp: 0, grup: "yardimci", yer: "Telefon",
