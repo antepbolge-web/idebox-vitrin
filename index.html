@@ -111,6 +111,8 @@
   .ayar-bolum { margin: 0 0 10px; font-size: 17px; color: var(--soluk); font-weight: 600; }
   .ayar-not { font-size: 16px !important; font-weight: 400 !important; color: var(--soluk); margin: 16px 0 !important; }
   .ayar-not:empty { display: none; }
+  .yedek-not { margin: 0 0 10px !important; }
+  .yedek-not.gecikti { color: #e8711a; font-weight: 700 !important; }
 
   /* iOS başlık alanı: büyük başlık + tek satırlık özet şeridi */
   .giris h1 { font-size: 30px; font-weight: 800; letter-spacing: -.6px; margin: 0; }
@@ -260,6 +262,8 @@
     color: var(--turkuaz); font: inherit; font-size: 17px; font-weight: 700; cursor: pointer;
   }
   .fikir-dugmeler button.sil { color: #e53935; }
+  .fikir-dugmeler .claude { flex: 1; display: flex; align-items: center; justify-content: center; min-height: 48px; border-radius: 14px; background: var(--turkuaz); color: #fff; font-size: 17px; font-weight: 700; text-decoration: none; white-space: nowrap; padding: 0 6px; }
+  @media (max-width: 359px) { .fikir-dugmeler { gap: 6px; } .fikir-dugmeler button, .fikir-dugmeler .claude { font-size: 15px; white-space: nowrap; padding: 0 4px; } .fikir-dugmeler button.emin { white-space: normal; } }
   .fikir-dugmeler button.sil.emin { background: #e53935; border-color: #e53935; color: #fff; }
   .komut { margin-top: 20px; border: 2px solid var(--turkuaz); background: var(--turkuaz-acik); color: var(--yazi); overflow-wrap: anywhere; padding: 8px 14px; }
   .fikir-durum { min-height: 1.4em; margin: -8px 0 8px; font-size: 16px; color: var(--turkuaz); }
@@ -374,7 +378,7 @@
   .kart { animation: belir .45s ease both; }
   /* Kısayolla gelinen kart 2 saniye parlar */
   @keyframes parla { 0%, 100% { box-shadow: var(--golge); } 50% { box-shadow: 0 0 0 4px var(--turkuaz), 0 0 24px var(--turkuaz); } }
-  .kart.parla { animation: parla 1s ease 2; }
+  .kart.parla, #disa-aktar.parla { animation: parla 1s ease 2; }
 
   /* Favori yıldızı: kartın sağ üst köşesinde, 44 px dokunma alanı */
   .yildiz {
@@ -511,7 +515,7 @@
       <button id="rapor-ac" class="arac" type="button" aria-label="Haftalık rapor"><span class="arac-simge" aria-hidden="true">📊</span><span class="arac-ad">Rapor</span></button>
       <button id="fikir-ac" class="arac" type="button" aria-label="Fikir kutusu"><span class="arac-simge" aria-hidden="true">💡</span><span class="arac-ad">Fikir</span><span class="arac-rozet gizli" id="fikir-rozet"></span></button>
       <button id="surum-denetle" class="arac gizli" type="button" aria-label="Sürümleri denetle"><span class="arac-simge" aria-hidden="true">🔄</span><span class="arac-ad" id="sd-ad">Sürüm</span><span class="arac-rozet gizli" id="sd-rozet"></span></button>
-      <button id="ayarlar-ac" class="arac" type="button" aria-label="Ayarlar"><span class="arac-simge" aria-hidden="true">⚙️</span><span class="arac-ad">Ayarlar</span></button>
+      <button id="ayarlar-ac" class="arac" type="button" aria-label="Ayarlar"><span class="arac-simge" aria-hidden="true">⚙️</span><span class="arac-ad">Ayarlar</span><span class="arac-rozet gizli" id="ayar-rozet" aria-hidden="true">!</span></button>
     </div>
     <div class="ara-satir">
       <input id="ara" class="ara" type="search" placeholder="Ara…" aria-label="Uygulama ara" autocomplete="off">
@@ -555,6 +559,7 @@
       <button data-t="dark">Koyu</button>
     </div>
     <h4 class="ayar-bolum">Yedek ve taşıma</h4>
+    <p class="ayar-not yedek-not" id="yedek-not"></p>
     <div class="sira-sifirla-alan">
       <button id="disa-aktar" class="sira-sifirla" type="button">⬆ Sayaçları ve fikirleri dışa aktar</button>
       <button id="ice-aktar" class="sira-sifirla" type="button">⬇ İçe aktar</button>
@@ -1259,6 +1264,7 @@
         const dosya = new File([metin], kok + ".txt", { type: "text/plain" });
         if (navigator.canShare({ files: [dosya] })) {
           await navigator.share({ files: [dosya], title: "Vitrin sayaçları" });
+          yedekAlindi();
           return;
         }
       } catch (e) {
@@ -1266,6 +1272,7 @@
       }
     }
     indir(metin, kok + ".json");
+    yedekAlindi();
   }
   function indir(metin, ad) {
     const blob = new Blob([metin], { type: "application/json" });
@@ -1561,6 +1568,7 @@
 
   // Fikir kutusu: fikirler yalnızca bu cihazda (vitrin-fikir) durur; dışa/içe aktarmayla taşınır.
   // Her kayıt { t: ISO tarih, m: metin }. En yeni üstte, en çok 300 kayıt, metin en çok 2000 harf.
+  const CLAUDE_ISTEM = "Bu fikri değerlendir, güçlü ve zayıf yönlerini, ilk 3 adımı yaz:";
   const FIKIR_ANAHTAR = "vitrin-fikir", FIKIR_TASLAK = "vitrin-fikir-taslak", FIKIR_EN_COK = 300;
   function fikirTemizle(liste) {
     if (!Array.isArray(liste)) return [];
@@ -1611,6 +1619,11 @@
       const dg = document.createElement("div"); dg.className = "fikir-dugmeler";
       const pay = document.createElement("button"); pay.type = "button"; pay.textContent = "↗ Paylaş";
       pay.addEventListener("click", () => fikirPaylas(f));
+      // Fikri Claude'da yeni sohbet olarak açar; başına değerlendirme istemi eklenir.
+      const cl = document.createElement("a"); cl.className = "claude"; cl.textContent = "✦ Claude";
+      cl.href = "https://claude.ai/new?q=" + encodeURIComponent(CLAUDE_ISTEM + "\n\n" + f.m);
+      cl.target = "_blank"; cl.rel = "noopener";
+      cl.setAttribute("aria-label", "Bu fikri Claude'a gönder");
       const sil = document.createElement("button"); sil.type = "button"; sil.className = "sil"; sil.textContent = "🗑 Sil";
       let bekle = 0;
       sil.addEventListener("click", () => {
@@ -1624,7 +1637,7 @@
         try { fikirYaz(fikirOku().filter(x => !(x.t === f.t && x.m === f.m))); } catch (e) { fikirBildir("Silinemedi"); return; }
         fikirListele(); fikirSayac(); fikirBildir("Silindi");
       });
-      dg.append(pay, sil);
+      dg.append(pay, cl, sil);
       li.append(tarih, m, dg);
       ul.appendChild(li);
     });
@@ -1658,6 +1671,34 @@
   onayFikir.addEventListener("click", e => { if (e.target === onayFikir) fikirKapat(); });
   document.addEventListener("keydown", e => { if (e.key === "Escape" && !onayFikir.classList.contains("gizli")) fikirKapat(); });
   fikirSayac();
+
+  // Yedek hatırlatıcısı: son dışa aktarma günü vitrin-son-yedek'te durur. 7 gün geçince (ya da hiç yedek yokken
+  // fikir/sayaç birikmişse) Ayarlar düğmesinde turuncu "!" çıkar; Ayarlar penceresinde son yedek günü yazar.
+  const YEDEK_ANAHTAR = "vitrin-son-yedek", YEDEK_GUN = 7;
+  function yedekAlindi() {
+    try { localStorage.setItem(YEDEK_ANAHTAR, bugunTarih()); } catch (e) {}
+    yedekDurum();
+  }
+  function yedekDurum() {
+    let son = null;
+    try { son = localStorage.getItem(YEDEK_ANAHTAR); } catch (e) {}
+    if (son && !/^\d{4}-\d{2}-\d{2}$/.test(son)) son = null;
+    let gun = null;
+    if (son) gun = Math.round((new Date(bugunTarih() + "T12:00:00") - new Date(son + "T12:00:00")) / 86400000);
+    let veriVar = false;
+    try { veriVar = fikirOku().length > 0 || Object.keys(gunOku()).length > 0 || favoriOku().length > 0; } catch (e) {}
+    const gecikti = son ? gun >= YEDEK_GUN : veriVar;
+    const not = document.getElementById("yedek-not");
+    not.textContent = !son ? (veriVar ? "Henüz yedek alınmadı." : "")
+      : "Son yedek: " + (gun <= 0 ? "bugün" : gun === 1 ? "dün" : gun + " gün önce") + (gecikti ? " · yedek almanın vakti geldi" : "");
+    not.classList.toggle("gecikti", gecikti);
+    const ayar = document.getElementById("ayarlar-ac");
+    ayar.classList.toggle("uyari", gecikti);
+    document.getElementById("ayar-rozet").classList.toggle("gizli", !gecikti);
+    ayar.setAttribute("aria-label", gecikti ? "Ayarlar, yedek almanın vakti geldi" : "Ayarlar");
+  }
+  yedekDurum();
+  document.addEventListener("visibilitychange", () => { if (!document.hidden) yedekDurum(); });
 
   // Sürüm denetimi (Android): Başlatıcı köprüsü (0.3.0-cafer.32+) kurulu tr.cafer.* sürüm kodlarını
   // vitrine #surumler=paket:kod,… ile geri gönderir; kod surum.json'daki "kod"dan küçükse kart eski sayılır.
@@ -1782,7 +1823,8 @@
     const komut = komutCoz(ara.value);
     const kd = document.getElementById("komut");
     kd.classList.toggle("gizli", !komut);
-    if (komut) kd.textContent = komut.tur === "rapor" ? "📊 Haftalık raporu aç" : (komut.icerik ? "💡 Fikir kutusuna yaz: “" + komut.icerik.slice(0, 60) + (komut.icerik.length > 60 ? "…" : "") + "”" : "💡 Fikir kutusunu aç");
+    const ETIKET = { rapor: "📊 Haftalık raporu aç", tema: "🎨 Temayı değiştir", yedek: "💾 Yedekle (dışa aktar)", surum: "⬆ Güncellemeleri denetle", ayar: "⚙️ Ayarları aç", favori: "★ Favorilere git" };
+    if (komut) kd.textContent = ETIKET[komut.tur] ? (komut.tur === "tema" ? "🎨 " + { dark: "Koyu temaya", light: "Açık temaya", system: "Sistem temasına" }[komut.t] + " geç" : ETIKET[komut.tur]) : (komut.icerik ? "💡 Fikir kutusuna yaz: “" + komut.icerik.slice(0, 60) + (komut.icerik.length > 60 ? "…" : "") + "”" : "💡 Fikir kutusunu aç");
     document.getElementById("bos").classList.toggle("gizli", toplam > 0 || !!komut);
   }
   document.querySelectorAll(".suzgec button").forEach(b => b.addEventListener("click", () => suz(b.dataset.s)));
@@ -1963,6 +2005,14 @@
     const q = duzle(ham);
     if (!q) return null;
     if (/^(haftalik )?rapor(u)?( ac)?$/.test(q)) return { tur: "rapor" };
+    // Ayar komutları: tam söz kalıbı gerekir, uygulama aramasıyla çakışmasın ("güncelle" tek başına uygulamayı açar).
+    const tm = q.match(/^(koyu|karanlik|gece|acik|aydinlik|gunduz|sistem|otomatik) (tema|mod|gorunum)(u|a|e|i|ya|ye|yu|si|su|i|yi)?( ac| yap| gec| sec| olsun)?$/);
+    if (tm) return { tur: "tema", t: /^(koyu|karanlik|gece)$/.test(tm[1]) ? "dark" : /^(sistem|otomatik)$/.test(tm[1]) ? "system" : "light" };
+    if (/^(yedekle|yedek al|yedegi al|yedek(i)? ac|disa aktar)$/.test(q)) return { tur: "yedek" };
+    if (/^((guncellemeleri|surumleri) (denetle|kontrol et)|(surum|guncelleme) (denetle|denetimi|kontrol(u)?|kontrol et))$/.test(q)
+        && !document.getElementById("surum-denetle").hidden && getComputedStyle(document.getElementById("surum-denetle")).display !== "none") return { tur: "surum" };
+    if (/^ayar(lar)?(i|a)?( ac)?$/.test(q)) return { tur: "ayar" };
+    if (/^favori(ler)?(im)?(i)?( ac| goster)?$/.test(q) && document.getElementById("favori").children.length) return { tur: "favori" };
     const m = ham.match(/^(fikir)(\s+kutusu(nu)?)?(\s+a[çc])?(?=$|[\s:,.\-])[\s:,.\-]*([\s\S]*)$/i);
     if (!m) return null;
     return { tur: "fikir", icerik: m[5].trim().slice(0, 2000) };
@@ -1970,6 +2020,20 @@
   function komutUygula(komut) {
     ara.value = ""; suz(); ara.blur();
     if (komut.tur === "rapor") { document.getElementById("rapor-ac").click(); return; }
+    if (komut.tur === "tema") { temaUygula(komut.t); return; }
+    if (komut.tur === "surum") { document.getElementById("surum-denetle").click(); return; }
+    if (komut.tur === "favori") { document.getElementById("b-favori").scrollIntoView({ behavior: "smooth", block: "start" }); return; }
+    if (komut.tur === "ayar" || komut.tur === "yedek") {
+      document.getElementById("ayarlar-ac").click();
+      if (komut.tur === "yedek") {
+        // Paylaşma penceresi gerçek bir dokunuş ister; bu yüzden yalnız düğme gösterilir ve parlatılır.
+        const d = document.getElementById("disa-aktar");
+        d.scrollIntoView({ block: "center" }); d.focus();
+        d.classList.remove("parla"); void d.offsetWidth; d.classList.add("parla");
+        setTimeout(() => d.classList.remove("parla"), 2100);
+      }
+      return;
+    }
     fikirAc();
     if (komut.icerik) {
       const onceki = fikirAlan.value.trim();
