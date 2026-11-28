@@ -1188,7 +1188,8 @@
 
   // Telefona kurulu uygulamayı açma: Chrome, uygulamaların kendisini web sayfasından açmaya izin vermez
   // (BROWSABLE değiller). Bu yüzden Cafer Başlatıcı'daki köprü çağrılır: cafer://ac?paket=...
-  // Köprü yalnızca tr.cafer.* uygulamalarını açar. Başlatıcı eski sürümse (köprü yoksa)
+  // Köprü tr.cafer.* ile Telefon Deneme ve Hesap Makinesi Deneme paketlerini açar (Başlatıcı 0.3.0-cafer.37).
+  // Başlatıcı eski sürümse (köprü yoksa)
   // Chrome vitrine ?acilamadi=Ad ile döner ve bir uyarı gösterilir.
   const KOPRU_PAKET = "tr.cafer.baslatici";
   function uygulamaAc(u) {
