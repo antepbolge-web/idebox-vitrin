@@ -674,8 +674,6 @@
   // Köprü Başlatıcı'nın kendisini açmaz; Başlatıcı'nın paketi yalnızca sürüm denetimi için tutulur.
   function acilabilir(u) { return ANDROID && !!u.paket && u.paket !== "tr.cafer.baslatici"; }
   const UYGULAMALAR = [
-    { ad: "Telefon", paket: "tr.cafer.telefon", simge: "telefon.svg", surum: "1.53.0", kod: 66, tarih: "2026-11-24", whatsapp: 0, grup: "ana", yer: "Telefon",
-      aciklama: "iOS tarzı arama ve rehber: gelen arama ekranı, son aramalar, favoriler, numara engelleme.", yenilik: "Gelen aramada kaydırma kısaldı: yarı yol ya da hızlı fiske yeter" },
     { ad: "Speed Dial", paket: "tr.cafer.speeddial", simge: "speeddial.png", surum: "1.3.4", kod: 12, tarih: "2026-11-24", whatsapp: 0, grup: "ana", yer: "Telefon",
       aciklama: "Sık aranan kişilere tek dokunuşla arama.", yenilik: "Kart sayısına 6 seçeneği: sayfada 6 büyük kart (2 sütun)" },
     { ad: "Kim Arıyor", paket: "tr.cafer.arayankim", simge: "kimariyor.png", surum: "1.0.2", kod: 3, tarih: "2026-11-16", whatsapp: 0, grup: "ana", yer: "Telefon",
@@ -700,8 +698,6 @@
       aciklama: "Hava durumu ve ana ekran widget'ı.", yenilik: "Widget ayarları birbirini değiştirmiyor; eski veri saatiyle gösteriliyor" },
     { ad: "Saatler", paket: "tr.cafer.widget", simge: "saatler.png", surum: "1.0.5", kod: 6, tarih: "2026-11-16", whatsapp: 0, grup: "yardimci", yer: "Telefon",
       aciklama: "Saat ve Vakit widget'ları.", yenilik: "Vakit widget'ı donmuyor; widget ayarları birbirini değiştirmiyor" },
-    { ad: "Spotlight", paket: "tr.cafer.aramaasistani", simge: "arama.png", ekran: ["arama-1.jpg"], surum: "1.2.21", kod: 29, tarih: "2026-11-21", whatsapp: 0, grup: "yardimci", yer: "Telefon + Bilgisayar",
-      aciklama: "Spotlight tarzı arama: uygulama, dosya, kişi, hesap makinesi, sözlük, Vikipedi.", yenilik: "Merkez'deki Spotlight düğmesiyle açılır" },
     { ad: "PDF Araç", paket: "tr.cafer.pdfasistani", simge: "pdf.png", surum: "1.1.8", kod: 13, tarih: "2026-11-28", whatsapp: 0, grup: "yardimci", yer: "Telefon + Bilgisayar",
       aciklama: "PDF okuma, imzalama, kamerayla tarama, bölme ve birleştirme.", yenilik: "Özgün PDF ve seçili sayfaların metni Defter’e aktarılabilir." },
     { ad: "Depolama", paket: "tr.cafer.depo", simge: "depo.png", ekran: ["depo-1.jpg"], surum: "2.1.9", kod: 12, tarih: "2026-11-16", whatsapp: 0, grup: "yardimci", yer: "Telefon + Bilgisayar",
@@ -736,7 +732,7 @@
 
   // Uygulamalar telefondaki adlarına geçti (2026-11-19). Sayaçlar ada bağlı tutulduğu için eski adlardaki
   // kayıtlar bir kez yeni adlara taşınır; kısayol ve içe aktarma da eski adları tanır.
-  const ESKI_ADLAR = {"Cafer Telefon": "Telefon", "Mektup": "Mektubat", "Notlar": "Defter", "Alarm ve Saat": "Alarmlar", "Arama Asistanı": "Spotlight", "PDF Asistanı": "PDF Araç", "Depo Asistanı": "Depolama", "Dosya Yöneticisi": "Dosyalar", "Fotoğraf Görüntüleyici": "Galeri", "Cafer Güncelleyici": "Güncelle", "Cafer Başlatıcı": "Başlatıcı", "Cafer Adım": "Adım"};
+  const ESKI_ADLAR = {"Cafer Telefon": "Telefon Deneme", "Telefon": "Telefon Deneme", "Mektup": "Mektubat", "Notlar": "Defter", "Alarm ve Saat": "Alarmlar", "Arama Asistanı": "Spotlight Deneme", "Spotlight": "Spotlight Deneme", "PDF Asistanı": "PDF Araç", "Depo Asistanı": "Depolama", "Dosya Yöneticisi": "Dosyalar", "Fotoğraf Görüntüleyici": "Galeri", "Cafer Güncelleyici": "Güncelle", "Cafer Başlatıcı": "Başlatıcı", "Cafer Adım": "Adım"};
   function guncelAd(ad) { return ESKI_ADLAR[ad] || ad; }
   (function adTasi() {
     try {
@@ -877,7 +873,11 @@
       gunKaydet(u.ad);
       siraDurum();
     }
-    el.addEventListener("click", kullanimSay);
+    el.addEventListener("click", () => {
+      kullanimSay();
+      // Liste görünümünde karta dokunmak uygulamayı açar (ızgara ile aynı). Simge, yıldız ve fotoğraf etiketi durdurur.
+      if (acilabilir(u)) uygulamaAc(u);
+    });
     const yildiz = document.createElement("button");
     yildiz.type = "button";
     yildiz.className = "yildiz";
@@ -923,8 +923,12 @@
       f.className = "etiket foto";
       f.textContent = "📷 " + u.ekran.length;
       el.querySelector(".etiketler").appendChild(f);
-      el.addEventListener("click", () => perdeAc(u));
-      el.addEventListener("keydown", e => { if (e.key === "Enter") perdeAc(u); });
+      f.addEventListener("click", e => { e.stopPropagation(); perdeAc(u); });
+      el.addEventListener("keydown", e => {
+        if (e.key !== "Enter") return;
+        if (acilabilir(u)) uygulamaAc(u);
+        else perdeAc(u);
+      });
     }
     return el;
   }
